@@ -1,28 +1,80 @@
 <template>
-  <div id="app">
-    <h1>HELLO WORLD - VUE IS WORKING!</h1>
-    <p>This is a test page</p>
-    <button @click="testClick">Click Me</button>
-    <p v-if="clicked">Button was clicked!</p>
+  <div id="app" class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <!-- Loading Screen -->
+    <div v-if="isLoading" class="fixed inset-0 bg-white dark:bg-gray-900 flex items-center justify-center z-50">
+      <div class="text-center">
+        <div class="loading-spinner mx-auto mb-4 h-8 w-8"></div>
+        <p class="text-gray-600 dark:text-gray-400">Loading TaskFlow...</p>
+      </div>
+    </div>
+
+    <!-- Main App -->
+    <div v-else class="flex h-screen">
+      <!-- Sidebar -->
+      <Sidebar v-if="isAuthenticated" />
+      
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Header -->
+        <Header v-if="isAuthenticated" />
+        
+        <!-- Router View -->
+        <main class="flex-1 overflow-auto">
+          <router-view />
+        </main>
+      </div>
+    </div>
+
+    <!-- Global Modals -->
+    <TaskModal v-if="showTaskModal" />
+    <ProjectModal v-if="showProjectModal" />
+    <UserModal v-if="showUserModal" />
   </div>
 </template>
 
 <script>
-import { ref } from 'vue'
+import { computed, onMounted } from 'vue'
+import { useStore } from 'vuex'
+import Sidebar from './components/Layout/Sidebar.vue'
+import Header from './components/Layout/Header.vue'
+import TaskModal from './components/Modals/TaskModal.vue'
+import ProjectModal from './components/Modals/ProjectModal.vue'
+import UserModal from './components/Modals/UserModal.vue'
 
 export default {
   name: 'App',
+  components: {
+    Sidebar,
+    Header,
+    TaskModal,
+    ProjectModal,
+    UserModal
+  },
   setup() {
-    const clicked = ref(false)
+    const store = useStore()
 
-    const testClick = () => {
-      clicked.value = true
-      console.log('Button clicked!')
-    }
+    const isLoading = computed(() => store.state.auth.isLoading)
+    const isAuthenticated = computed(() => store.state.auth.isAuthenticated)
+    const showTaskModal = computed(() => store.state.modals.showTaskModal)
+    const showProjectModal = computed(() => store.state.modals.showProjectModal)
+    const showUserModal = computed(() => store.state.modals.showUserModal)
+
+    onMounted(async () => {
+      // Initialize app
+      await store.dispatch('auth/checkAuth')
+      
+      // Initialize socket connection if authenticated
+      if (isAuthenticated.value) {
+        await store.dispatch('socket/connect')
+      }
+    })
 
     return {
-      clicked,
-      testClick
+      isLoading,
+      isAuthenticated,
+      showTaskModal,
+      showProjectModal,
+      showUserModal
     }
   }
 }
