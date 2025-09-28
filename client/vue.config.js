@@ -17,5 +17,7 @@ module.exports = defineConfig({
       }
     }
   },
-  publicPath: process.env.NODE_ENV === 'production' ? '/task-management/' : '/'
+  publicPath: process.env.NODE_ENV === 'production' ? '/' : '/',
+  outputDir: 'dist',
+  assetsDir: 'assets'
 })
