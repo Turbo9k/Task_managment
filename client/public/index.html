@@ -32,20 +32,38 @@
             50% { opacity: 0.5; }
         }
         .dark {
-            background-color: #1a202c;
-            color: #e2e8f0;
+            background-color: #1a202c !important;
+            color: #e2e8f0 !important;
         }
         .dark .bg-white {
-            background-color: #2d3748;
+            background-color: #2d3748 !important;
         }
         .dark .text-gray-900 {
-            color: #e2e8f0;
+            color: #e2e8f0 !important;
         }
         .dark .text-gray-600 {
-            color: #a0aec0;
+            color: #a0aec0 !important;
+        }
+        .dark .text-gray-700 {
+            color: #e2e8f0 !important;
+        }
+        .dark .text-gray-500 {
+            color: #a0aec0 !important;
         }
         .dark .border-gray-200 {
-            border-color: #4a5568;
+            border-color: #4a5568 !important;
+        }
+        .dark .bg-gray-50 {
+            background-color: #1a202c !important;
+        }
+        .dark .bg-gray-100 {
+            background-color: #2d3748 !important;
+        }
+        .dark .hover\:bg-gray-50:hover {
+            background-color: #374151 !important;
+        }
+        .dark .hover\:bg-gray-100:hover {
+            background-color: #374151 !important;
         }
     </style>
 </head>
@@ -212,7 +230,66 @@
                         </button>
                     </div>
                     
-                    <button @click="showLoginModal = false" class="w-full mt-6 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
+                    <div class="mt-6 text-center">
+                        <button @click="showLoginModal = false; showRegisterModal = true" class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
+                            <i class="fas fa-user-plus mr-2"></i>Create New Account
+                        </button>
+                    </div>
+                    
+                    <button @click="showLoginModal = false" class="w-full mt-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
+                        <i class="fas fa-times mr-2"></i>Cancel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Registration Modal -->
+            <div v-if="showRegisterModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-md mx-4">
+                    <div class="text-center mb-6">
+                        <i class="fas fa-user-plus text-4xl text-green-600 mb-4"></i>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Create Account</h2>
+                        <p class="text-gray-600 dark:text-gray-400">Join TaskFlow and start managing your tasks</p>
+                    </div>
+                    
+                    <form @submit.prevent="register" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
+                            <input v-model="registerForm.name" type="text" required class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white" placeholder="Enter your full name">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
+                            <input v-model="registerForm.email" type="email" required class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white" placeholder="Enter your email">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Role</label>
+                            <select v-model="registerForm.role" required class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                                <option value="">Select your role</option>
+                                <option value="admin">Admin - Full access</option>
+                                <option value="manager">Manager - Project management</option>
+                                <option value="developer">Developer - Development tasks</option>
+                                <option value="designer">Designer - UI/UX tasks</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
+                            <input v-model="registerForm.password" type="password" required class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white" placeholder="Create a password">
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-3 rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-300 transform hover:scale-105">
+                            <i class="fas fa-user-plus mr-2"></i>Create Account
+                        </button>
+                    </form>
+                    
+                    <div class="mt-6 text-center">
+                        <button @click="showRegisterModal = false; showLoginModal = true" class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Already have an account? Login
+                        </button>
+                    </div>
+                    
+                    <button @click="showRegisterModal = false" class="w-full mt-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
                         <i class="fas fa-times mr-2"></i>Cancel
                     </button>
                 </div>
@@ -261,7 +338,14 @@
                 const user = ref({ name: 'Demo User', role: 'user' });
                 const message = ref('');
                 const showLoginModal = ref(false);
+                const showRegisterModal = ref(false);
                 const showStatsModal = ref(false);
+                const registerForm = ref({
+                    name: '',
+                    email: '',
+                    role: '',
+                    password: ''
+                });
                 const tasks = ref([
                     { id: 1, title: 'Set up project structure', description: 'Initialize the project with proper folder structure and dependencies', completed: true, priority: 'High' },
                     { id: 2, title: 'Implement user authentication', description: 'Create login and registration system with JWT tokens', completed: true, priority: 'High' },
@@ -281,15 +365,38 @@
 
                 const loginAs = (role) => {
                     const users = {
-                        admin: { name: 'Admin User', role: 'admin' },
-                        manager: { name: 'Manager User', role: 'manager' },
-                        developer: { name: 'Developer User', role: 'developer' }
+                        admin: { name: 'Admin User', role: 'admin', email: 'admin@taskflow.com' },
+                        manager: { name: 'Manager User', role: 'manager', email: 'manager@taskflow.com' },
+                        developer: { name: 'Developer User', role: 'developer', email: 'developer@taskflow.com' }
                     };
                     
                     user.value = users[role];
                     isAuthenticated.value = true;
                     showLoginModal.value = false;
                     message.value = `Welcome ${user.value.name}! You're logged in as ${role}.`;
+                    setTimeout(() => { message.value = ''; }, 3000);
+                };
+
+                const register = () => {
+                    // Simulate registration
+                    user.value = {
+                        name: registerForm.value.name,
+                        email: registerForm.value.email,
+                        role: registerForm.value.role
+                    };
+                    
+                    isAuthenticated.value = true;
+                    showRegisterModal.value = false;
+                    message.value = `Welcome ${user.value.name}! Your ${registerForm.value.role} account has been created successfully.`;
+                    
+                    // Reset form
+                    registerForm.value = {
+                        name: '',
+                        email: '',
+                        role: '',
+                        password: ''
+                    };
+                    
                     setTimeout(() => { message.value = ''; }, 3000);
                 };
 
@@ -378,12 +485,15 @@
                     user,
                     message,
                     showLoginModal,
+                    showRegisterModal,
                     showStatsModal,
+                    registerForm,
                     tasks,
                     completedTasks,
                     completionPercentage,
                     toggleDarkMode,
                     loginAs,
+                    register,
                     logout,
                     createProject,
                     addTask,
