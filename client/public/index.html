@@ -146,16 +146,30 @@
                 </div>
             </div>
 
-            <!-- Demo Actions (when authenticated) -->
-            <div v-if="isAuthenticated" class="text-center mb-8">
-                <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Quick Actions</h2>
+            <!-- Project Selection & Actions (when authenticated) -->
+            <div v-if="isAuthenticated" class="mb-8">
+                <div class="flex flex-col md:flex-row items-center justify-between mb-6">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-4 md:mb-0">Your Workspace</h2>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-folder text-blue-600"></i>
+                            <select v-model="selectedProject" @change="filterTasksByProject" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                                <option value="all">All Projects</option>
+                                <option v-for="project in projects" :key="project.id" :value="project.id">{{ project.name }}</option>
+                            </select>
+                        </div>
+                        <button @click="showCreateProjectModal = true" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300">
+                            <i class="fas fa-plus mr-2"></i>New Project
+                        </button>
+                    </div>
+                </div>
+                
                 <div class="flex flex-wrap justify-center gap-4">
-                    <button @click="createProject" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-105">
-                        <i class="fas fa-plus mr-2"></i>Create Project
-                    </button>
-                    <button @click="addTask" class="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-300 transform hover:scale-105">
-                        <i class="fas fa-tasks mr-2"></i>Add Task
-                    </button>
+                    <div class="relative">
+                        <button @click="showAddTaskModal = true" class="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-300 transform hover:scale-105">
+                            <i class="fas fa-tasks mr-2"></i>Add Task
+                        </button>
+                    </div>
                     <button @click="showNotification" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-300 transform hover:scale-105">
                         <i class="fas fa-bell mr-2"></i>Test Notification
                     </button>
@@ -173,41 +187,46 @@
                 </div>
             </div>
 
-            <!-- Task List (when authenticated) -->
-            <div v-if="isAuthenticated" class="mt-12">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Your Tasks</h2>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-sm text-gray-500 dark:text-gray-400">{{ completedTasks }}/{{ tasks.length }} completed</span>
-                        <div class="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                            <div class="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full" :style="{ width: completionPercentage + '%' }"></div>
+                <!-- Task List (when authenticated) -->
+                <div v-if="isAuthenticated" class="mt-12">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Your Tasks</h2>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-500 dark:text-gray-400">{{ completedTasks }}/{{ filteredTasks.length }} completed</span>
+                            <div class="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div class="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full" :style="{ width: completionPercentage + '%' }"></div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <div v-for="task in tasks" :key="task.id" class="p-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-4">
-                                <input type="checkbox" v-model="task.completed" @change="updateTask(task)" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
-                                <div>
-                                    <span :class="{ 'line-through text-gray-500 dark:text-gray-400': task.completed }" class="text-lg font-medium text-gray-900 dark:text-white">{{ task.title }}</span>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ task.description }}</p>
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div v-for="task in filteredTasks" :key="task.id" class="p-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <input type="checkbox" v-model="task.completed" @change="updateTask(task)" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
+                                    <div class="flex-1">
+                                        <div class="flex items-center space-x-2 mb-1">
+                                            <span :class="{ 'line-through text-gray-500 dark:text-gray-400': task.completed }" class="text-lg font-medium text-gray-900 dark:text-white">{{ task.title }}</span>
+                                            <span v-if="task.projectId" :class="getProjectColor(task.projectId)" class="px-2 py-1 rounded-full text-xs font-semibold text-white">
+                                                {{ getProjectName(task.projectId) }}
+                                            </span>
+                                        </div>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ task.description }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <span :class="getPriorityClass(task.priority)" class="px-3 py-1 rounded-full text-xs font-semibold">{{ task.priority }}</span>
+                                    <button @click="deleteTask(task.id)" class="text-red-500 hover:text-red-700 transition-colors">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-3">
-                                <span :class="getPriorityClass(task.priority)" class="px-3 py-1 rounded-full text-xs font-semibold">{{ task.priority }}</span>
-                                <button @click="deleteTask(task.id)" class="text-red-500 hover:text-red-700 transition-colors">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
+                        </div>
+                        <div v-if="filteredTasks.length === 0" class="p-8 text-center text-gray-500 dark:text-gray-400">
+                            <i class="fas fa-tasks text-4xl mb-4 opacity-50"></i>
+                            <p class="text-lg">No tasks found. Try changing the project filter or add a new task!</p>
                         </div>
                     </div>
-                    <div v-if="tasks.length === 0" class="p-8 text-center text-gray-500 dark:text-gray-400">
-                        <i class="fas fa-tasks text-4xl mb-4 opacity-50"></i>
-                        <p class="text-lg">No tasks yet. Click "Add Task" to get started!</p>
-                    </div>
                 </div>
-            </div>
 
             <!-- Login Modal -->
             <div v-if="showLoginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -295,6 +314,139 @@
                 </div>
             </div>
 
+            <!-- Create Project Modal -->
+            <div v-if="showCreateProjectModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-md mx-4">
+                    <div class="text-center mb-6">
+                        <i class="fas fa-folder-plus text-4xl text-blue-600 mb-4"></i>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Create New Project</h2>
+                        <p class="text-gray-600 dark:text-gray-400">Start a new project to organize your tasks</p>
+                    </div>
+                    
+                    <form @submit.prevent="createProject" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Project Name</label>
+                            <input v-model="newProject.name" type="text" required class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white" placeholder="Enter project name">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+                            <textarea v-model="newProject.description" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white" rows="3" placeholder="Describe your project"></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Color Theme</label>
+                            <div class="flex space-x-2">
+                                <button v-for="color in projectColors" :key="color.name" @click="newProject.color = color.value" type="button" :class="[color.bg, newProject.color === color.value ? 'ring-2 ring-blue-500' : '']" class="w-8 h-8 rounded-full border-2 border-gray-300 dark:border-gray-600"></button>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-105">
+                            <i class="fas fa-folder-plus mr-2"></i>Create Project
+                        </button>
+                    </form>
+                    
+                    <button @click="showCreateProjectModal = false" class="w-full mt-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
+                        <i class="fas fa-times mr-2"></i>Cancel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Add Task Modal -->
+            <div v-if="showAddTaskModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-md mx-4">
+                    <div class="text-center mb-6">
+                        <i class="fas fa-tasks text-4xl text-green-600 mb-4"></i>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Add New Task</h2>
+                        <p class="text-gray-600 dark:text-gray-400">Create a custom task or generate a random one</p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="flex space-x-2">
+                            <button @click="taskMode = 'custom'" :class="taskMode === 'custom' ? 'bg-green-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'" class="flex-1 py-2 px-4 rounded-lg transition-colors">
+                                <i class="fas fa-edit mr-2"></i>Custom Task
+                            </button>
+                            <button @click="taskMode = 'random'" :class="taskMode === 'random' ? 'bg-green-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'" class="flex-1 py-2 px-4 rounded-lg transition-colors">
+                                <i class="fas fa-random mr-2"></i>Random Task
+                            </button>
+                        </div>
+                        
+                        <!-- Custom Task Form -->
+                        <div v-if="taskMode === 'custom'">
+                            <form @submit.prevent="createCustomTask" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Task Title</label>
+                                    <input v-model="customTask.title" type="text" required class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white" placeholder="Enter task title">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+                                    <textarea v-model="customTask.description" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white" rows="3" placeholder="Describe the task"></textarea>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priority</label>
+                                        <select v-model="customTask.priority" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                                            <option value="Low">Low</option>
+                                            <option value="Medium">Medium</option>
+                                            <option value="High">High</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Project</label>
+                                        <select v-model="customTask.projectId" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                                            <option value="">Select Project</option>
+                                            <option v-for="project in projects" :key="project.id" :value="project.id">{{ project.name }}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-3 rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-300 transform hover:scale-105">
+                                    <i class="fas fa-plus mr-2"></i>Create Custom Task
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Random Task Generator -->
+                        <div v-if="taskMode === 'random'">
+                            <div class="text-center mb-4">
+                                <p class="text-gray-600 dark:text-gray-400 mb-4">Generate a random task from our template library</p>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
+                                        <select v-model="randomTask.category" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                                            <option value="development">Development</option>
+                                            <option value="design">Design</option>
+                                            <option value="marketing">Marketing</option>
+                                            <option value="management">Management</option>
+                                            <option value="general">General</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Project</label>
+                                        <select v-model="randomTask.projectId" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                                            <option value="">Select Project</option>
+                                            <option v-for="project in projects" :key="project.id" :value="project.id">{{ project.name }}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button @click="generateRandomTask" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-300 transform hover:scale-105">
+                                <i class="fas fa-random mr-2"></i>Generate Random Task
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button @click="showAddTaskModal = false" class="w-full mt-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
+                        <i class="fas fa-times mr-2"></i>Cancel
+                    </button>
+                </div>
+            </div>
+
             <!-- Stats Modal -->
             <div v-if="showStatsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-2xl mx-4">
@@ -339,6 +491,8 @@
                 const message = ref('');
                 const showLoginModal = ref(false);
                 const showRegisterModal = ref(false);
+                const showCreateProjectModal = ref(false);
+                const showAddTaskModal = ref(false);
                 const showStatsModal = ref(false);
                 const registerForm = ref({
                     name: '',
@@ -346,16 +500,56 @@
                     role: '',
                     password: ''
                 });
+                const selectedProject = ref('all');
+                const taskMode = ref('custom');
+                const projects = ref([
+                    { id: 1, name: 'Website Redesign', description: 'Complete website overhaul', color: 'bg-blue-500' },
+                    { id: 2, name: 'Mobile App', description: 'iOS and Android app development', color: 'bg-green-500' },
+                    { id: 3, name: 'Database Migration', description: 'Move to new database system', color: 'bg-purple-500' }
+                ]);
+                const newProject = ref({
+                    name: '',
+                    description: '',
+                    color: 'bg-blue-500'
+                });
+                const customTask = ref({
+                    title: '',
+                    description: '',
+                    priority: 'Medium',
+                    projectId: ''
+                });
+                const randomTask = ref({
+                    category: 'development',
+                    projectId: ''
+                });
+                const projectColors = ref([
+                    { name: 'Blue', value: 'bg-blue-500', bg: 'bg-blue-500' },
+                    { name: 'Green', value: 'bg-green-500', bg: 'bg-green-500' },
+                    { name: 'Purple', value: 'bg-purple-500', bg: 'bg-purple-500' },
+                    { name: 'Red', value: 'bg-red-500', bg: 'bg-red-500' },
+                    { name: 'Yellow', value: 'bg-yellow-500', bg: 'bg-yellow-500' },
+                    { name: 'Pink', value: 'bg-pink-500', bg: 'bg-pink-500' },
+                    { name: 'Indigo', value: 'bg-indigo-500', bg: 'bg-indigo-500' },
+                    { name: 'Orange', value: 'bg-orange-500', bg: 'bg-orange-500' }
+                ]);
                 const tasks = ref([
-                    { id: 1, title: 'Set up project structure', description: 'Initialize the project with proper folder structure and dependencies', completed: true, priority: 'High' },
-                    { id: 2, title: 'Implement user authentication', description: 'Create login and registration system with JWT tokens', completed: true, priority: 'High' },
-                    { id: 3, title: 'Create task management interface', description: 'Build the main dashboard with task creation and management', completed: false, priority: 'Medium' },
-                    { id: 4, title: 'Add real-time collaboration', description: 'Implement Socket.io for live updates and team collaboration', completed: false, priority: 'Low' },
-                    { id: 5, title: 'Design responsive UI', description: 'Make the interface work perfectly on all devices', completed: false, priority: 'Medium' }
+                    { id: 1, title: 'Set up project structure', description: 'Initialize the project with proper folder structure and dependencies', completed: true, priority: 'High', projectId: 1 },
+                    { id: 2, title: 'Implement user authentication', description: 'Create login and registration system with JWT tokens', completed: true, priority: 'High', projectId: 1 },
+                    { id: 3, title: 'Create task management interface', description: 'Build the main dashboard with task creation and management', completed: false, priority: 'Medium', projectId: 1 },
+                    { id: 4, title: 'Add real-time collaboration', description: 'Implement Socket.io for live updates and team collaboration', completed: false, priority: 'Low', projectId: 2 },
+                    { id: 5, title: 'Design responsive UI', description: 'Make the interface work perfectly on all devices', completed: false, priority: 'Medium', projectId: 2 },
+                    { id: 6, title: 'Database schema design', description: 'Create optimized database structure for the application', completed: true, priority: 'High', projectId: 3 },
+                    { id: 7, title: 'Data migration scripts', description: 'Write scripts to migrate existing data to new schema', completed: false, priority: 'Medium', projectId: 3 }
                 ]);
 
                 const completedTasks = computed(() => tasks.value.filter(task => task.completed).length);
                 const completionPercentage = computed(() => tasks.value.length > 0 ? (completedTasks.value / tasks.value.length) * 100 : 0);
+                const filteredTasks = computed(() => {
+                    if (selectedProject.value === 'all') {
+                        return tasks.value;
+                    }
+                    return tasks.value.filter(task => task.projectId === parseInt(selectedProject.value));
+                });
 
                 const toggleDarkMode = () => {
                     darkMode.value = !darkMode.value;
@@ -408,10 +602,135 @@
                 };
 
                 const createProject = () => {
-                    const projectNames = ['Website Redesign', 'Mobile App Development', 'Database Migration', 'API Integration', 'Performance Optimization'];
-                    const randomProject = projectNames[Math.floor(Math.random() * projectNames.length)];
-                    message.value = `Project "${randomProject}" created successfully!`;
+                    if (!newProject.value.name.trim()) {
+                        message.value = 'Please enter a project name!';
+                        setTimeout(() => { message.value = ''; }, 3000);
+                        return;
+                    }
+                    
+                    const project = {
+                        id: Date.now(),
+                        name: newProject.value.name,
+                        description: newProject.value.description,
+                        color: newProject.value.color
+                    };
+                    
+                    projects.value.push(project);
+                    showCreateProjectModal.value = false;
+                    message.value = `Project "${project.name}" created successfully!`;
+                    
+                    // Reset form
+                    newProject.value = {
+                        name: '',
+                        description: '',
+                        color: 'bg-blue-500'
+                    };
+                    
                     setTimeout(() => { message.value = ''; }, 3000);
+                };
+
+                const createCustomTask = () => {
+                    if (!customTask.value.title.trim()) {
+                        message.value = 'Please enter a task title!';
+                        setTimeout(() => { message.value = ''; }, 3000);
+                        return;
+                    }
+                    
+                    const task = {
+                        id: Date.now(),
+                        title: customTask.value.title,
+                        description: customTask.value.description,
+                        priority: customTask.value.priority,
+                        projectId: customTask.value.projectId ? parseInt(customTask.value.projectId) : null,
+                        completed: false
+                    };
+                    
+                    tasks.value.push(task);
+                    showAddTaskModal.value = false;
+                    message.value = `Task "${task.title}" created successfully!`;
+                    
+                    // Reset form
+                    customTask.value = {
+                        title: '',
+                        description: '',
+                        priority: 'Medium',
+                        projectId: ''
+                    };
+                    
+                    setTimeout(() => { message.value = ''; }, 3000);
+                };
+
+                const generateRandomTask = () => {
+                    const taskTemplates = {
+                        development: [
+                            { title: 'Fix bug in authentication module', description: 'Resolve login issues reported by users', priority: 'High' },
+                            { title: 'Implement new API endpoint', description: 'Create RESTful endpoint for user data retrieval', priority: 'Medium' },
+                            { title: 'Write unit tests for user service', description: 'Add comprehensive test coverage for user management functions', priority: 'Medium' },
+                            { title: 'Optimize database queries', description: 'Improve performance of slow-running database operations', priority: 'Low' },
+                            { title: 'Refactor legacy code', description: 'Clean up and modernize old codebase sections', priority: 'Low' }
+                        ],
+                        design: [
+                            { title: 'Create wireframes for new feature', description: 'Design user interface mockups for upcoming functionality', priority: 'High' },
+                            { title: 'Update brand guidelines', description: 'Refresh company branding and design standards', priority: 'Medium' },
+                            { title: 'Design mobile app icons', description: 'Create app icons for different screen sizes and platforms', priority: 'Medium' },
+                            { title: 'User experience research', description: 'Conduct usability testing and gather user feedback', priority: 'Low' },
+                            { title: 'Create marketing materials', description: 'Design promotional graphics and social media assets', priority: 'Low' }
+                        ],
+                        marketing: [
+                            { title: 'Launch social media campaign', description: 'Create and execute marketing campaign across platforms', priority: 'High' },
+                            { title: 'Write blog post about new features', description: 'Create engaging content to announce product updates', priority: 'Medium' },
+                            { title: 'Email newsletter design', description: 'Design and format monthly newsletter for subscribers', priority: 'Medium' },
+                            { title: 'SEO optimization', description: 'Improve website search engine rankings and visibility', priority: 'Low' },
+                            { title: 'Analytics report analysis', description: 'Review and analyze marketing campaign performance data', priority: 'Low' }
+                        ],
+                        management: [
+                            { title: 'Team performance review', description: 'Conduct quarterly reviews and provide feedback to team members', priority: 'High' },
+                            { title: 'Project timeline update', description: 'Review and adjust project schedules based on current progress', priority: 'Medium' },
+                            { title: 'Budget planning for next quarter', description: 'Plan and allocate resources for upcoming projects', priority: 'Medium' },
+                            { title: 'Client communication', description: 'Update stakeholders on project status and deliverables', priority: 'Low' },
+                            { title: 'Process improvement', description: 'Identify and implement workflow optimizations', priority: 'Low' }
+                        ],
+                        general: [
+                            { title: 'Update project documentation', description: 'Keep project docs current and comprehensive', priority: 'High' },
+                            { title: 'Organize team meeting', description: 'Schedule and prepare agenda for weekly team sync', priority: 'Medium' },
+                            { title: 'Research new tools', description: 'Evaluate potential software and tools for team productivity', priority: 'Medium' },
+                            { title: 'Clean up workspace', description: 'Organize files and maintain clean project structure', priority: 'Low' },
+                            { title: 'Plan team building activity', description: 'Organize fun team event to boost morale', priority: 'Low' }
+                        ]
+                    };
+                    
+                    const categoryTasks = taskTemplates[randomTask.value.category] || taskTemplates.general;
+                    const randomTemplate = categoryTasks[Math.floor(Math.random() * categoryTasks.length)];
+                    
+                    const task = {
+                        id: Date.now(),
+                        title: randomTemplate.title,
+                        description: randomTemplate.description,
+                        priority: randomTemplate.priority,
+                        projectId: randomTask.value.projectId ? parseInt(randomTask.value.projectId) : null,
+                        completed: false
+                    };
+                    
+                    tasks.value.push(task);
+                    showAddTaskModal.value = false;
+                    message.value = `Random task "${task.title}" generated successfully!`;
+                    
+                    setTimeout(() => { message.value = ''; }, 3000);
+                };
+
+                const filterTasksByProject = () => {
+                    // This will be used to filter tasks in the display
+                    // For now, we'll just show all tasks
+                };
+
+                const getProjectName = (projectId) => {
+                    const project = projects.value.find(p => p.id === projectId);
+                    return project ? project.name : 'Unknown Project';
+                };
+
+                const getProjectColor = (projectId) => {
+                    const project = projects.value.find(p => p.id === projectId);
+                    return project ? project.color : 'bg-gray-500';
                 };
 
                 const addTask = () => {
@@ -486,20 +805,35 @@
                     message,
                     showLoginModal,
                     showRegisterModal,
+                    showCreateProjectModal,
+                    showAddTaskModal,
                     showStatsModal,
                     registerForm,
+                    selectedProject,
+                    taskMode,
+                    projects,
+                    newProject,
+                    customTask,
+                    randomTask,
+                    projectColors,
                     tasks,
                     completedTasks,
                     completionPercentage,
+                    filteredTasks,
                     toggleDarkMode,
                     loginAs,
                     register,
                     logout,
                     createProject,
+                    createCustomTask,
+                    generateRandomTask,
                     addTask,
                     updateTask,
                     deleteTask,
                     getPriorityClass,
+                    getProjectName,
+                    getProjectColor,
+                    filterTasksByProject,
                     showNotification,
                     showStats,
                     scrollToFeatures
