@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow - Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .status {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            border: 1px solid #c3e6cb;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 TaskFlow - Static Test Page</h1>
+        
+        <div class="status">
+            ✅ <strong>Success!</strong> This is a static HTML page served directly by Vercel.
+        </div>
+        
+        <p>This page proves that:</p>
+        <ul>
+            <li>Vercel is serving static files correctly</li>
+            <li>The routing is working</li>
+            <li>We can access the application</li>
+        </ul>
+        
+        <button class="test-button" onclick="testClick()">Test JavaScript</button>
+        <p id="result"></p>
+        
+        <div style="margin-top: 30px; padding: 20px; background: #e9ecef; border-radius: 4px;">
+            <h3>Next Steps:</h3>
+            <p>Once this static page works, we can restore the full Vue.js application with all its features.</p>
+        </div>
+    </div>
+
+    <script>
+        function testClick() {
+            document.getElementById('result').innerHTML = '✅ JavaScript is working! The full Vue.js app should work too.';
+        }
+        
+        console.log('Static page loaded successfully!');
+    </script>
+</body>
+</html>
