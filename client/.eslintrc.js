@@ -43,6 +43,26 @@ module.exports = {
     'func-call-spacing': 'off',
     'no-multiple-empty-lines': 'off',
     'no-unused-vars': 'warn',
-    'no-undef': 'error'
+    'no-undef': 'error',
+    'no-return-assign': 'off',
+    'no-cond-assign': 'off',
+    'no-constant-condition': 'off',
+    'no-dupe-args': 'off',
+    'no-dupe-keys': 'off',
+    'no-duplicate-case': 'off',
+    'no-empty': 'off',
+    'no-ex-assign': 'off',
+    'no-extra-boolean-cast': 'off',
+    'no-extra-semi': 'off',
+    'no-func-assign': 'off',
+    'no-inner-declarations': 'off',
+    'no-invalid-regexp': 'off',
+    'no-irregular-whitespace': 'off',
+    'no-obj-calls': 'off',
+    'no-regex-spaces': 'off',
+    'no-sparse-arrays': 'off',
+    'no-unreachable': 'off',
+    'use-isnan': 'off',
+    'valid-typeof': 'off'
   }
 }
