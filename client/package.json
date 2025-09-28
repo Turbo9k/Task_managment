@@ -15,7 +15,6 @@
     "socket.io-client": "^4.7.2",
     "vue-draggable-next": "^2.24.0",
     "vue-toastification": "^2.0.0-rc.4",
-    "vue-datepicker": "^0.0.1",
     "vue-multiselect": "^2.1.6",
     "chart.js": "^4.4.0",
     "vue-chartjs": "^5.2.0",
