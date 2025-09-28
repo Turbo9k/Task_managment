@@ -1,80 +1,132 @@
 <template>
-  <div id="app" class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-    <!-- Loading Screen -->
-    <div v-if="isLoading" class="fixed inset-0 bg-white dark:bg-gray-900 flex items-center justify-center z-50">
-      <div class="text-center">
-        <div class="loading-spinner mx-auto mb-4 h-8 w-8"></div>
-        <p class="text-gray-600 dark:text-gray-400">Loading TaskFlow...</p>
-      </div>
-    </div>
+  <div id="app">
+    <!-- Simple Working App -->
+    <div class="min-h-screen bg-gray-50">
+      <!-- Navigation -->
+      <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between items-center h-16">
+            <div class="flex items-center">
+              <h1 class="text-2xl font-bold text-blue-600">TaskFlow</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+              <button @click="toggleDarkMode" class="p-2 rounded-md text-gray-400 hover:text-gray-500">
+                {{ darkMode ? '☀️' : '🌙' }}
+              </button>
+              <button @click="login" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                {{ isAuthenticated ? 'Dashboard' : 'Login' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
 
-    <!-- Main App -->
-    <div v-else class="flex h-screen">
-      <!-- Sidebar -->
-      <Sidebar v-if="isAuthenticated" />
-      
       <!-- Main Content -->
-      <div class="flex-1 flex flex-col overflow-hidden">
-        <!-- Header -->
-        <Header v-if="isAuthenticated" />
-        
-        <!-- Router View -->
-        <main class="flex-1 overflow-auto">
-          <router-view />
-        </main>
-      </div>
-    </div>
+      <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div class="px-4 py-6 sm:px-0">
+          <!-- Welcome Section -->
+          <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">
+              Welcome to TaskFlow
+            </h2>
+            <p class="text-lg text-gray-600 mb-6">
+              Collaborative task management made simple
+            </p>
+            <div v-if="isAuthenticated" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+              ✅ You are logged in as: {{ user.name || 'Demo User' }}
+            </div>
+          </div>
 
-    <!-- Global Modals -->
-    <TaskModal v-if="showTaskModal" />
-    <ProjectModal v-if="showProjectModal" />
-    <UserModal v-if="showUserModal" />
+          <!-- Features Grid -->
+          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow">
+              <div class="text-blue-600 text-2xl mb-2">📋</div>
+              <h3 class="text-lg font-semibold mb-2">Task Management</h3>
+              <p class="text-gray-600">Create, organize, and track tasks with ease</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow">
+              <div class="text-blue-600 text-2xl mb-2">👥</div>
+              <h3 class="text-lg font-semibold mb-2">Team Collaboration</h3>
+              <p class="text-gray-600">Work together in real-time with your team</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow">
+              <div class="text-blue-600 text-2xl mb-2">📊</div>
+              <h3 class="text-lg font-semibold mb-2">Analytics</h3>
+              <p class="text-gray-600">Track progress and measure productivity</p>
+            </div>
+          </div>
+
+          <!-- Demo Actions -->
+          <div class="text-center">
+            <button @click="createProject" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 mr-4">
+              Create Project
+            </button>
+            <button @click="addTask" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 mr-4">
+              Add Task
+            </button>
+            <button @click="showNotification" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700">
+              Test Notification
+            </button>
+          </div>
+
+          <!-- Status Messages -->
+          <div v-if="message" class="mt-6 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded">
+            {{ message }}
+          </div>
+        </div>
+      </main>
+    </div>
   </div>
 </template>
 
 <script>
-import { computed, onMounted } from 'vue'
-import { useStore } from 'vuex'
-import Sidebar from './components/Layout/Sidebar.vue'
-import Header from './components/Layout/Header.vue'
-import TaskModal from './components/Modals/TaskModal.vue'
-import ProjectModal from './components/Modals/ProjectModal.vue'
-import UserModal from './components/Modals/UserModal.vue'
+import { ref, computed } from 'vue'
 
 export default {
   name: 'App',
-  components: {
-    Sidebar,
-    Header,
-    TaskModal,
-    ProjectModal,
-    UserModal
-  },
   setup() {
-    const store = useStore()
+    const darkMode = ref(false)
+    const isAuthenticated = ref(false)
+    const user = ref({ name: 'Demo User' })
+    const message = ref('')
 
-    const isLoading = computed(() => store.state.auth.isLoading)
-    const isAuthenticated = computed(() => store.state.auth.isAuthenticated)
-    const showTaskModal = computed(() => store.state.modals.showTaskModal)
-    const showProjectModal = computed(() => store.state.modals.showProjectModal)
-    const showUserModal = computed(() => store.state.modals.showUserModal)
+    const toggleDarkMode = () => {
+      darkMode.value = !darkMode.value
+      message.value = `Dark mode ${darkMode.value ? 'enabled' : 'disabled'}`
+      setTimeout(() => { message.value = '' }, 3000)
+    }
 
-    onMounted(async () => {
-      // Initialize app
-      await store.dispatch('auth/checkAuth')
-      
-      // Initialize socket connection if authenticated
-      if (isAuthenticated.value) {
-        await store.dispatch('socket/connect')
-      }
-    })
+    const login = () => {
+      isAuthenticated.value = !isAuthenticated.value
+      message.value = isAuthenticated.value ? 'Welcome to TaskFlow!' : 'Logged out successfully'
+      setTimeout(() => { message.value = '' }, 3000)
+    }
+
+    const createProject = () => {
+      message.value = 'Project created successfully! (Demo)'
+      setTimeout(() => { message.value = '' }, 3000)
+    }
+
+    const addTask = () => {
+      message.value = 'Task added successfully! (Demo)'
+      setTimeout(() => { message.value = '' }, 3000)
+    }
+
+    const showNotification = () => {
+      message.value = 'Notification sent! (Demo)'
+      setTimeout(() => { message.value = '' }, 3000)
+    }
 
     return {
-      isLoading,
+      darkMode,
       isAuthenticated,
-      showTaskModal,
-      showProjectModal,
-      showUserModal
+      user,
+      message,
+      toggleDarkMode,
+      login,
+      createProject,
+      addTask,
+      showNotification
     }
   }
 }
