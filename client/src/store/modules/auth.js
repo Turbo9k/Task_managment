@@ -43,6 +43,12 @@ const mutations = {
 
 const actions = {
   async checkAuth({ commit, state }) {
+    // For demo purposes, skip auth check and just clear loading
+    commit('SET_LOADING', false)
+    return
+    
+    // Original auth check code (commented out for demo)
+    /*
     if (!state.token) {
       commit('SET_LOADING', false)
       return
@@ -56,15 +62,42 @@ const actions = {
       commit('SET_TOKEN', state.token)
     } catch (error) {
       console.error('Auth check failed:', error)
-      commit('LOGOUT')
+      // Don't logout on network errors, just clear loading
+      if (error.code === 'NETWORK_ERROR' || !error.response) {
+        console.log('Network error during auth check, continuing without auth')
+      } else {
+        commit('LOGOUT')
+      }
     } finally {
       commit('SET_LOADING', false)
     }
+    */
   },
 
   async login({ commit }, credentials) {
     commit('SET_LOADING', true)
     
+    // Demo mode - simulate successful login
+    setTimeout(() => {
+      const demoUser = {
+        id: 1,
+        name: 'Demo User',
+        email: credentials.email || 'demo@example.com',
+        avatar: null,
+        role: 'admin'
+      }
+      
+      commit('SET_TOKEN', 'demo-token')
+      commit('SET_USER', demoUser)
+      commit('SET_LOADING', false)
+      
+      toast.success('Welcome to TaskFlow Demo!')
+    }, 1000)
+    
+    return { success: true }
+    
+    // Original login code (commented out for demo)
+    /*
     try {
       const response = await api.post('/auth/login', credentials)
       const { token, user } = response.data
@@ -81,11 +114,33 @@ const actions = {
     } finally {
       commit('SET_LOADING', false)
     }
+    */
   },
 
   async register({ commit }, userData) {
     commit('SET_LOADING', true)
     
+    // Demo mode - simulate successful registration
+    setTimeout(() => {
+      const demoUser = {
+        id: 1,
+        name: userData.name || 'Demo User',
+        email: userData.email || 'demo@example.com',
+        avatar: null,
+        role: 'admin'
+      }
+      
+      commit('SET_TOKEN', 'demo-token')
+      commit('SET_USER', demoUser)
+      commit('SET_LOADING', false)
+      
+      toast.success('Welcome to TaskFlow Demo!')
+    }, 1000)
+    
+    return { success: true }
+    
+    // Original register code (commented out for demo)
+    /*
     try {
       const response = await api.post('/auth/register', userData)
       const { token, user } = response.data
@@ -102,6 +157,7 @@ const actions = {
     } finally {
       commit('SET_LOADING', false)
     }
+    */
   },
 
   async socialLogin({ commit }, { provider, token }) {

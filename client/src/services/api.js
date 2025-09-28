@@ -4,9 +4,18 @@ import store from '../store'
 
 const toast = useToast()
 
+// Determine API URL based on environment
+const getApiUrl = () => {
+  if (process.env.NODE_ENV === 'production') {
+    // In production, use the Vercel backend URL
+    return 'https://task-management-backend.vercel.app/api'
+  }
+  return process.env.VUE_APP_API_URL || 'http://localhost:3000/api'
+}
+
 // Create axios instance
 const api = axios.create({
-  baseURL: process.env.VUE_APP_API_URL || 'http://localhost:3000/api',
+  baseURL: getApiUrl(),
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
