@@ -6,8 +6,7 @@ module.exports = {
     es2021: true
   },
   extends: [
-    'plugin:vue/vue3-essential',
-    '@vue/standard'
+    'plugin:vue/vue3-essential'
   ],
   parserOptions: {
     ecmaVersion: 2021,
@@ -63,6 +62,10 @@ module.exports = {
     'no-sparse-arrays': 'off',
     'no-unreachable': 'off',
     'use-isnan': 'off',
-    'valid-typeof': 'off'
+    'valid-typeof': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-unused-vars': 'off',
+    '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/no-inferrable-types': 'off'
   }
 }
