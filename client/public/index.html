@@ -3,79 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskFlow - Test</title>
+    <title>TaskFlow - Collaborative Task Management</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            background-color: #f0f0f0;
-            margin: 0;
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.3s ease;
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #333;
-            text-align: center;
-        }
-        .status {
-            background: #d4edda;
-            color: #155724;
-            padding: 15px;
-            border-radius: 4px;
-            margin: 20px 0;
-            border: 1px solid #c3e6cb;
-        }
-        .test-button {
-            background: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 10px 0;
-        }
-        .test-button:hover {
-            background: #0056b3;
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🚀 TaskFlow - Static Test Page</h1>
-        
-        <div class="status">
-            ✅ <strong>Success!</strong> This is a static HTML page served directly by Vercel.
-        </div>
-        
-        <p>This page proves that:</p>
-        <ul>
-            <li>Vercel is serving static files correctly</li>
-            <li>The routing is working</li>
-            <li>We can access the application</li>
-        </ul>
-        
-        <button class="test-button" onclick="testClick()">Test JavaScript</button>
-        <p id="result"></p>
-        
-        <div style="margin-top: 30px; padding: 20px; background: #e9ecef; border-radius: 4px;">
-            <h3>Next Steps:</h3>
-            <p>Once this static page works, we can restore the full Vue.js application with all its features.</p>
-        </div>
+    <div id="app">
+        <!-- Navigation -->
+        <nav class="bg-white shadow-sm border-b">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">
+                        <h1 class="text-2xl font-bold text-blue-600">TaskFlow</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button @click="toggleDarkMode" class="p-2 rounded-md text-gray-400 hover:text-gray-500">
+                            {{ darkMode ? '☀️' : '🌙' }}
+                        </button>
+                        <button @click="login" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                            {{ isAuthenticated ? 'Dashboard' : 'Login' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <div class="px-4 py-6 sm:px-0">
+                <!-- Welcome Section -->
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">
+                        Welcome to TaskFlow
+                    </h2>
+                    <p class="text-lg text-gray-600 mb-6">
+                        Collaborative task management made simple
+                    </p>
+                    <div v-if="isAuthenticated" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+                        ✅ You are logged in as: {{ user.name }}
+                    </div>
+                </div>
+
+                <!-- Features Grid -->
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div class="text-blue-600 text-2xl mb-2">📋</div>
+                        <h3 class="text-lg font-semibold mb-2">Task Management</h3>
+                        <p class="text-gray-600">Create, organize, and track tasks with ease</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div class="text-blue-600 text-2xl mb-2">👥</div>
+                        <h3 class="text-lg font-semibold mb-2">Team Collaboration</h3>
+                        <p class="text-gray-600">Work together in real-time with your team</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div class="text-blue-600 text-2xl mb-2">📊</div>
+                        <h3 class="text-lg font-semibold mb-2">Analytics</h3>
+                        <p class="text-gray-600">Track progress and measure productivity</p>
+                    </div>
+                </div>
+
+                <!-- Demo Actions -->
+                <div class="text-center">
+                    <button @click="createProject" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 mr-4">
+                        Create Project
+                    </button>
+                    <button @click="addTask" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 mr-4">
+                        Add Task
+                    </button>
+                    <button @click="showNotification" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700">
+                        Test Notification
+                    </button>
+                </div>
+
+                <!-- Status Messages -->
+                <div v-if="message" class="mt-6 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded fade-enter-active">
+                    {{ message }}
+                </div>
+
+                <!-- Task List (when authenticated) -->
+                <div v-if="isAuthenticated" class="mt-8">
+                    <h3 class="text-xl font-semibold mb-4">Your Tasks</h3>
+                    <div class="bg-white rounded-lg shadow">
+                        <div v-for="task in tasks" :key="task.id" class="p-4 border-b last:border-b-0 flex items-center justify-between">
+                            <div class="flex items-center">
+                                <input type="checkbox" v-model="task.completed" @change="updateTask(task)" class="mr-3">
+                                <span :class="{ 'line-through text-gray-500': task.completed }">{{ task.title }}</span>
+                            </div>
+                            <span class="text-sm text-gray-500">{{ task.priority }}</span>
+                        </div>
+                        <div v-if="tasks.length === 0" class="p-4 text-gray-500 text-center">
+                            No tasks yet. Click "Add Task" to get started!
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 
     <script>
-        function testClick() {
-            document.getElementById('result').innerHTML = '✅ JavaScript is working! The full Vue.js app should work too.';
-        }
-        
-        console.log('Static page loaded successfully!');
+        const { createApp, ref } = Vue;
+
+        createApp({
+            setup() {
+                const darkMode = ref(false);
+                const isAuthenticated = ref(false);
+                const user = ref({ name: 'Demo User' });
+                const message = ref('');
+                const tasks = ref([
+                    { id: 1, title: 'Set up project structure', completed: true, priority: 'High' },
+                    { id: 2, title: 'Implement user authentication', completed: true, priority: 'High' },
+                    { id: 3, title: 'Create task management interface', completed: false, priority: 'Medium' },
+                    { id: 4, title: 'Add real-time collaboration', completed: false, priority: 'Low' }
+                ]);
+
+                const toggleDarkMode = () => {
+                    darkMode.value = !darkMode.value;
+                    message.value = `Dark mode ${darkMode.value ? 'enabled' : 'disabled'}`;
+                    setTimeout(() => { message.value = ''; }, 3000);
+                };
+
+                const login = () => {
+                    isAuthenticated.value = !isAuthenticated.value;
+                    message.value = isAuthenticated.value ? 'Welcome to TaskFlow!' : 'Logged out successfully';
+                    setTimeout(() => { message.value = ''; }, 3000);
+                };
+
+                const createProject = () => {
+                    message.value = 'Project created successfully! (Demo)';
+                    setTimeout(() => { message.value = ''; }, 3000);
+                };
+
+                const addTask = () => {
+                    const newTask = {
+                        id: tasks.value.length + 1,
+                        title: `New Task ${tasks.value.length + 1}`,
+                        completed: false,
+                        priority: 'Medium'
+                    };
+                    tasks.value.push(newTask);
+                    message.value = 'Task added successfully! (Demo)';
+                    setTimeout(() => { message.value = ''; }, 3000);
+                };
+
+                const updateTask = (task) => {
+                    message.value = `Task "${task.title}" ${task.completed ? 'completed' : 'uncompleted'}!`;
+                    setTimeout(() => { message.value = ''; }, 3000);
+                };
+
+                const showNotification = () => {
+                    message.value = 'Notification sent! (Demo)';
+                    setTimeout(() => { message.value = ''; }, 3000);
+                };
+
+                return {
+                    darkMode,
+                    isAuthenticated,
+                    user,
+                    message,
+                    tasks,
+                    toggleDarkMode,
+                    login,
+                    createProject,
+                    addTask,
+                    updateTask,
+                    showNotification
+                };
+            }
+        }).mount('#app');
     </script>
 </body>
 </html>
