@@ -6,6 +6,7 @@
     <title>TaskFlow - Collaborative Task Management</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .fade-enter-active, .fade-leave-active {
             transition: opacity 0.3s ease;
@@ -13,95 +14,236 @@
         .fade-enter-from, .fade-leave-to {
             opacity: 0;
         }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .dark {
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+        .dark .bg-white {
+            background-color: #2d3748;
+        }
+        .dark .text-gray-900 {
+            color: #e2e8f0;
+        }
+        .dark .text-gray-600 {
+            color: #a0aec0;
+        }
+        .dark .border-gray-200 {
+            border-color: #4a5568;
+        }
     </style>
 </head>
-<body>
+<body :class="{ 'dark': darkMode }">
     <div id="app">
         <!-- Navigation -->
-        <nav class="bg-white shadow-sm border-b">
+        <nav class="bg-white dark:bg-gray-800 shadow-lg border-b border-gray-200 dark:border-gray-700">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-16">
                     <div class="flex items-center">
-                        <h1 class="text-2xl font-bold text-blue-600">TaskFlow</h1>
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-tasks text-2xl text-blue-600"></i>
+                            <h1 class="text-2xl font-bold text-blue-600 dark:text-blue-400">TaskFlow</h1>
+                        </div>
                     </div>
                     <div class="flex items-center space-x-4">
-                        <button @click="toggleDarkMode" class="p-2 rounded-md text-gray-400 hover:text-gray-500">
-                            {{ darkMode ? '☀️' : '🌙' }}
+                        <button @click="toggleDarkMode" class="p-2 rounded-md text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition-colors">
+                            <i :class="darkMode ? 'fas fa-sun' : 'fas fa-moon'"></i>
                         </button>
-                        <button @click="login" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-                            {{ isAuthenticated ? 'Dashboard' : 'Login' }}
+                        <button @click="showLoginModal = true" v-if="!isAuthenticated" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Login
                         </button>
+                        <div v-else class="flex items-center space-x-3">
+                            <span class="text-gray-700 dark:text-gray-300">Welcome, {{ user.name }}!</span>
+                            <button @click="logout" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </nav>
 
+        <!-- Hero Section -->
+        <div class="gradient-bg text-white py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-5xl font-bold mb-6">Welcome to TaskFlow</h1>
+                <p class="text-xl mb-8 opacity-90">Collaborative task management made simple and beautiful</p>
+                <div v-if="!isAuthenticated" class="space-x-4">
+                    <button @click="showLoginModal = true" class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105">
+                        <i class="fas fa-rocket mr-2"></i>Get Started
+                    </button>
+                    <button @click="scrollToFeatures" class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-all duration-300">
+                        <i class="fas fa-info-circle mr-2"></i>Learn More
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Main Content -->
-        <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-            <div class="px-4 py-6 sm:px-0">
-                <!-- Welcome Section -->
-                <div class="text-center mb-8">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4">
-                        Welcome to TaskFlow
-                    </h2>
-                    <p class="text-lg text-gray-600 mb-6">
-                        Collaborative task management made simple
-                    </p>
-                    <div v-if="isAuthenticated" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                        ✅ You are logged in as: {{ user.name }}
+        <main class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+            <!-- Features Grid -->
+            <div id="features" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+                <div class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg card-hover border border-gray-200 dark:border-gray-700">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-tasks text-2xl text-blue-600 dark:text-blue-400"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3 text-gray-900 dark:text-white">Task Management</h3>
+                        <p class="text-gray-600 dark:text-gray-300">Create, organize, and track tasks with ease. Set priorities, deadlines, and subtasks.</p>
                     </div>
                 </div>
-
-                <!-- Features Grid -->
-                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <div class="text-blue-600 text-2xl mb-2">📋</div>
-                        <h3 class="text-lg font-semibold mb-2">Task Management</h3>
-                        <p class="text-gray-600">Create, organize, and track tasks with ease</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <div class="text-blue-600 text-2xl mb-2">👥</div>
-                        <h3 class="text-lg font-semibold mb-2">Team Collaboration</h3>
-                        <p class="text-gray-600">Work together in real-time with your team</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow">
-                        <div class="text-blue-600 text-2xl mb-2">📊</div>
-                        <h3 class="text-lg font-semibold mb-2">Analytics</h3>
-                        <p class="text-gray-600">Track progress and measure productivity</p>
+                <div class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg card-hover border border-gray-200 dark:border-gray-700">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-users text-2xl text-green-600 dark:text-green-400"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3 text-gray-900 dark:text-white">Team Collaboration</h3>
+                        <p class="text-gray-600 dark:text-gray-300">Work together in real-time with your team. Share projects and communicate seamlessly.</p>
                     </div>
                 </div>
+                <div class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg card-hover border border-gray-200 dark:border-gray-700">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-chart-line text-2xl text-purple-600 dark:text-purple-400"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3 text-gray-900 dark:text-white">Analytics</h3>
+                        <p class="text-gray-600 dark:text-gray-300">Track progress and measure productivity with detailed insights and reports.</p>
+                    </div>
+                </div>
+            </div>
 
-                <!-- Demo Actions -->
-                <div class="text-center">
-                    <button @click="createProject" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 mr-4">
-                        Create Project
+            <!-- Demo Actions (when authenticated) -->
+            <div v-if="isAuthenticated" class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Quick Actions</h2>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <button @click="createProject" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-105">
+                        <i class="fas fa-plus mr-2"></i>Create Project
                     </button>
-                    <button @click="addTask" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 mr-4">
-                        Add Task
+                    <button @click="addTask" class="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-300 transform hover:scale-105">
+                        <i class="fas fa-tasks mr-2"></i>Add Task
                     </button>
-                    <button @click="showNotification" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700">
-                        Test Notification
+                    <button @click="showNotification" class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-300 transform hover:scale-105">
+                        <i class="fas fa-bell mr-2"></i>Test Notification
+                    </button>
+                    <button @click="showStats" class="bg-gradient-to-r from-orange-600 to-orange-700 text-white px-6 py-3 rounded-lg hover:from-orange-700 hover:to-orange-800 transition-all duration-300 transform hover:scale-105">
+                        <i class="fas fa-chart-bar mr-2"></i>View Stats
                     </button>
                 </div>
+            </div>
 
-                <!-- Status Messages -->
-                <div v-if="message" class="mt-6 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded fade-enter-active">
+            <!-- Status Messages -->
+            <div v-if="message" class="fixed top-20 right-4 p-4 bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-300 rounded-lg shadow-lg fade-enter-active z-50">
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle mr-2"></i>
                     {{ message }}
                 </div>
+            </div>
 
-                <!-- Task List (when authenticated) -->
-                <div v-if="isAuthenticated" class="mt-8">
-                    <h3 class="text-xl font-semibold mb-4">Your Tasks</h3>
-                    <div class="bg-white rounded-lg shadow">
-                        <div v-for="task in tasks" :key="task.id" class="p-4 border-b last:border-b-0 flex items-center justify-between">
-                            <div class="flex items-center">
-                                <input type="checkbox" v-model="task.completed" @change="updateTask(task)" class="mr-3">
-                                <span :class="{ 'line-through text-gray-500': task.completed }">{{ task.title }}</span>
-                            </div>
-                            <span class="text-sm text-gray-500">{{ task.priority }}</span>
+            <!-- Task List (when authenticated) -->
+            <div v-if="isAuthenticated" class="mt-12">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Your Tasks</h2>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">{{ completedTasks }}/{{ tasks.length }} completed</span>
+                        <div class="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div class="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full" :style="{ width: completionPercentage + '%' }"></div>
                         </div>
-                        <div v-if="tasks.length === 0" class="p-4 text-gray-500 text-center">
-                            No tasks yet. Click "Add Task" to get started!
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div v-for="task in tasks" :key="task.id" class="p-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <input type="checkbox" v-model="task.completed" @change="updateTask(task)" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
+                                <div>
+                                    <span :class="{ 'line-through text-gray-500 dark:text-gray-400': task.completed }" class="text-lg font-medium text-gray-900 dark:text-white">{{ task.title }}</span>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ task.description }}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span :class="getPriorityClass(task.priority)" class="px-3 py-1 rounded-full text-xs font-semibold">{{ task.priority }}</span>
+                                <button @click="deleteTask(task.id)" class="text-red-500 hover:text-red-700 transition-colors">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="tasks.length === 0" class="p-8 text-center text-gray-500 dark:text-gray-400">
+                        <i class="fas fa-tasks text-4xl mb-4 opacity-50"></i>
+                        <p class="text-lg">No tasks yet. Click "Add Task" to get started!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Login Modal -->
+            <div v-if="showLoginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-md mx-4">
+                    <div class="text-center mb-6">
+                        <i class="fas fa-tasks text-4xl text-blue-600 mb-4"></i>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Welcome to TaskFlow</h2>
+                        <p class="text-gray-600 dark:text-gray-400">Choose a demo account to get started</p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <button @click="loginAs('admin')" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105">
+                            <i class="fas fa-crown mr-2"></i>Login as Admin
+                        </button>
+                        <button @click="loginAs('manager')" class="w-full bg-gradient-to-r from-green-600 to-teal-600 text-white py-3 rounded-lg hover:from-green-700 hover:to-teal-700 transition-all duration-300 transform hover:scale-105">
+                            <i class="fas fa-user-tie mr-2"></i>Login as Manager
+                        </button>
+                        <button @click="loginAs('developer')" class="w-full bg-gradient-to-r from-orange-600 to-red-600 text-white py-3 rounded-lg hover:from-orange-700 hover:to-red-700 transition-all duration-300 transform hover:scale-105">
+                            <i class="fas fa-code mr-2"></i>Login as Developer
+                        </button>
+                    </div>
+                    
+                    <button @click="showLoginModal = false" class="w-full mt-6 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
+                        <i class="fas fa-times mr-2"></i>Cancel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Modal -->
+            <div v-if="showStatsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-2xl mx-4">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Task Statistics</h2>
+                        <button @click="showStatsModal = false" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">{{ tasks.length }}</div>
+                            <div class="text-sm text-gray-600 dark:text-gray-400">Total Tasks</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-green-600 dark:text-green-400">{{ completedTasks }}</div>
+                            <div class="text-sm text-gray-600 dark:text-gray-400">Completed</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-orange-600 dark:text-orange-400">{{ tasks.length - completedTasks }}</div>
+                            <div class="text-sm text-gray-600 dark:text-gray-400">Pending</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-purple-600 dark:text-purple-400">{{ Math.round(completionPercentage) }}%</div>
+                            <div class="text-sm text-gray-600 dark:text-gray-400">Progress</div>
                         </div>
                     </div>
                 </div>
@@ -110,20 +252,26 @@
     </div>
 
     <script>
-        const { createApp, ref } = Vue;
+        const { createApp, ref, computed } = Vue;
 
         createApp({
             setup() {
                 const darkMode = ref(false);
                 const isAuthenticated = ref(false);
-                const user = ref({ name: 'Demo User' });
+                const user = ref({ name: 'Demo User', role: 'user' });
                 const message = ref('');
+                const showLoginModal = ref(false);
+                const showStatsModal = ref(false);
                 const tasks = ref([
-                    { id: 1, title: 'Set up project structure', completed: true, priority: 'High' },
-                    { id: 2, title: 'Implement user authentication', completed: true, priority: 'High' },
-                    { id: 3, title: 'Create task management interface', completed: false, priority: 'Medium' },
-                    { id: 4, title: 'Add real-time collaboration', completed: false, priority: 'Low' }
+                    { id: 1, title: 'Set up project structure', description: 'Initialize the project with proper folder structure and dependencies', completed: true, priority: 'High' },
+                    { id: 2, title: 'Implement user authentication', description: 'Create login and registration system with JWT tokens', completed: true, priority: 'High' },
+                    { id: 3, title: 'Create task management interface', description: 'Build the main dashboard with task creation and management', completed: false, priority: 'Medium' },
+                    { id: 4, title: 'Add real-time collaboration', description: 'Implement Socket.io for live updates and team collaboration', completed: false, priority: 'Low' },
+                    { id: 5, title: 'Design responsive UI', description: 'Make the interface work perfectly on all devices', completed: false, priority: 'Medium' }
                 ]);
+
+                const completedTasks = computed(() => tasks.value.filter(task => task.completed).length);
+                const completionPercentage = computed(() => tasks.value.length > 0 ? (completedTasks.value / tasks.value.length) * 100 : 0);
 
                 const toggleDarkMode = () => {
                     darkMode.value = !darkMode.value;
@@ -131,26 +279,51 @@
                     setTimeout(() => { message.value = ''; }, 3000);
                 };
 
-                const login = () => {
-                    isAuthenticated.value = !isAuthenticated.value;
-                    message.value = isAuthenticated.value ? 'Welcome to TaskFlow!' : 'Logged out successfully';
+                const loginAs = (role) => {
+                    const users = {
+                        admin: { name: 'Admin User', role: 'admin' },
+                        manager: { name: 'Manager User', role: 'manager' },
+                        developer: { name: 'Developer User', role: 'developer' }
+                    };
+                    
+                    user.value = users[role];
+                    isAuthenticated.value = true;
+                    showLoginModal.value = false;
+                    message.value = `Welcome ${user.value.name}! You're logged in as ${role}.`;
+                    setTimeout(() => { message.value = ''; }, 3000);
+                };
+
+                const logout = () => {
+                    isAuthenticated.value = false;
+                    user.value = { name: 'Demo User', role: 'user' };
+                    message.value = 'Logged out successfully!';
                     setTimeout(() => { message.value = ''; }, 3000);
                 };
 
                 const createProject = () => {
-                    message.value = 'Project created successfully! (Demo)';
+                    const projectNames = ['Website Redesign', 'Mobile App Development', 'Database Migration', 'API Integration', 'Performance Optimization'];
+                    const randomProject = projectNames[Math.floor(Math.random() * projectNames.length)];
+                    message.value = `Project "${randomProject}" created successfully!`;
                     setTimeout(() => { message.value = ''; }, 3000);
                 };
 
                 const addTask = () => {
+                    const taskTemplates = [
+                        { title: 'Review code changes', description: 'Go through the latest pull requests and provide feedback', priority: 'High' },
+                        { title: 'Update documentation', description: 'Keep the project documentation up to date', priority: 'Medium' },
+                        { title: 'Fix bug reports', description: 'Address issues reported by users', priority: 'High' },
+                        { title: 'Plan next sprint', description: 'Organize tasks for the upcoming development cycle', priority: 'Low' },
+                        { title: 'Write unit tests', description: 'Add test coverage for new features', priority: 'Medium' }
+                    ];
+                    
+                    const randomTask = taskTemplates[Math.floor(Math.random() * taskTemplates.length)];
                     const newTask = {
-                        id: tasks.value.length + 1,
-                        title: `New Task ${tasks.value.length + 1}`,
-                        completed: false,
-                        priority: 'Medium'
+                        id: Date.now(),
+                        ...randomTask,
+                        completed: false
                     };
                     tasks.value.push(newTask);
-                    message.value = 'Task added successfully! (Demo)';
+                    message.value = `Task "${newTask.title}" added successfully!`;
                     setTimeout(() => { message.value = ''; }, 3000);
                 };
 
@@ -159,9 +332,44 @@
                     setTimeout(() => { message.value = ''; }, 3000);
                 };
 
+                const deleteTask = (taskId) => {
+                    const taskIndex = tasks.value.findIndex(task => task.id === taskId);
+                    if (taskIndex > -1) {
+                        const task = tasks.value[taskIndex];
+                        tasks.value.splice(taskIndex, 1);
+                        message.value = `Task "${task.title}" deleted successfully!`;
+                        setTimeout(() => { message.value = ''; }, 3000);
+                    }
+                };
+
+                const getPriorityClass = (priority) => {
+                    const classes = {
+                        'High': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+                        'Medium': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+                        'Low': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                    };
+                    return classes[priority] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+                };
+
                 const showNotification = () => {
-                    message.value = 'Notification sent! (Demo)';
+                    const notifications = [
+                        'New team member joined the project!',
+                        'Deadline approaching for "Website Redesign"',
+                        'Code review requested for your latest changes',
+                        'Project status updated to "In Progress"',
+                        'New comment added to task "Fix bug reports"'
+                    ];
+                    const randomNotification = notifications[Math.floor(Math.random() * notifications.length)];
+                    message.value = `📢 ${randomNotification}`;
                     setTimeout(() => { message.value = ''; }, 3000);
+                };
+
+                const showStats = () => {
+                    showStatsModal.value = true;
+                };
+
+                const scrollToFeatures = () => {
+                    document.getElementById('features').scrollIntoView({ behavior: 'smooth' });
                 };
 
                 return {
@@ -169,13 +377,22 @@
                     isAuthenticated,
                     user,
                     message,
+                    showLoginModal,
+                    showStatsModal,
                     tasks,
+                    completedTasks,
+                    completionPercentage,
                     toggleDarkMode,
-                    login,
+                    loginAs,
+                    logout,
                     createProject,
                     addTask,
                     updateTask,
-                    showNotification
+                    deleteTask,
+                    getPriorityClass,
+                    showNotification,
+                    showStats,
+                    scrollToFeatures
                 };
             }
         }).mount('#app');
