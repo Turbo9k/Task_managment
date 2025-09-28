@@ -39,30 +39,6 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/projects/:id',
-    name: 'ProjectDetail',
-    component: () => import('../views/ProjectDetail.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/projects/:id/kanban',
-    name: 'KanbanBoard',
-    component: () => import('../views/KanbanBoard.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/projects/:id/calendar',
-    name: 'CalendarView',
-    component: () => import('../views/CalendarView.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/projects/:id/analytics',
-    name: 'Analytics',
-    component: () => import('../views/Analytics.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
     path: '/tasks',
     name: 'Tasks',
     component: () => import('../views/Tasks.vue'),
