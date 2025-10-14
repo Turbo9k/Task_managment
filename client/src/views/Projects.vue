@@ -45,14 +45,14 @@
       <div
         v-for="project in projects"
         :key="project.id"
-        class="card p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+        class="card-vibrant p-6 hover:shadow-glow-lg transition-all duration-300 cursor-pointer transform hover:-translate-y-2 animate-fade-in"
         @click="viewProject(project.id)"
       >
         <!-- Project Header -->
         <div class="flex items-start justify-between mb-4">
           <div class="flex items-center">
             <div
-              class="w-4 h-4 rounded-full mr-3"
+              class="w-6 h-6 rounded-full mr-3 shadow-glow"
               :style="{ backgroundColor: project.color }"
             ></div>
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
@@ -62,13 +62,33 @@
           <div class="flex items-center space-x-2">
             <span
               v-if="project.role === 'admin'"
-              class="badge badge-primary text-xs"
+              class="badge-admin text-xs"
             >
-              Admin
+              👑 Admin
+            </span>
+            <span
+              v-else-if="project.role === 'manager'"
+              class="badge-manager text-xs"
+            >
+              📊 Manager
+            </span>
+            <span
+              v-else-if="project.role === 'developer'"
+              class="badge-developer text-xs"
+            >
+              💻 Developer
             </span>
             <button
+              @click.stop="openProjectChat(project)"
+              class="text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200"
+              title="Open Chat"
+            >
+              <MessageCircle class="h-4 w-4" />
+            </button>
+            <button
               @click.stop="editProject(project)"
-              class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
+              title="Edit Project"
             >
               <MoreVertical class="h-4 w-4" />
             </button>
@@ -82,13 +102,13 @@
 
         <!-- Progress Bar -->
         <div class="mb-4">
-          <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
-            <span>Progress</span>
-            <span>{{ progressPercentage(project) }}%</span>
+          <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+            <span class="font-medium">Progress</span>
+            <span class="font-bold text-primary-600 dark:text-primary-400">{{ progressPercentage(project) }}%</span>
           </div>
-          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 shadow-inner">
             <div
-              class="bg-primary-600 h-2 rounded-full transition-all duration-300"
+              class="bg-gradient-to-r from-primary-500 to-primary-600 h-3 rounded-full transition-all duration-500 shadow-glow"
               :style="{ width: `${progressPercentage(project)}%` }"
             ></div>
           </div>
@@ -112,11 +132,20 @@
         </div>
       </div>
     </div>
+
+    <!-- Chat Modal -->
+    <ChatModal
+      :is-open="showChatModal"
+      :type="'project'"
+      :item-id="selectedProject?.id"
+      :item-name="selectedProject?.name"
+      @close="closeChatModal"
+    />
   </div>
 </template>
 
 <script>
-import { computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import {
@@ -124,8 +153,10 @@ import {
   FolderOpen,
   MoreVertical,
   CheckSquare,
-  Users
+  Users,
+  MessageCircle
 } from 'lucide-vue-next'
+import ChatModal from '../components/Chat/ChatModal.vue'
 
 export default {
   name: 'Projects',
@@ -134,11 +165,16 @@ export default {
     FolderOpen,
     MoreVertical,
     CheckSquare,
-    Users
+    Users,
+    MessageCircle,
+    ChatModal
   },
   setup() {
     const store = useStore()
     const router = useRouter()
+
+    const showChatModal = ref(false)
+    const selectedProject = ref(null)
 
     const projects = computed(() => store.getters['projects/projects'])
     const isLoading = computed(() => store.getters['projects/isLoading'])
@@ -169,18 +205,32 @@ export default {
       })
     }
 
+    const openProjectChat = (project) => {
+      selectedProject.value = project
+      showChatModal.value = true
+    }
+
+    const closeChatModal = () => {
+      showChatModal.value = false
+      selectedProject.value = null
+    }
+
     onMounted(() => {
       store.dispatch('projects/fetchProjects')
     })
 
     return {
+      showChatModal,
+      selectedProject,
       projects,
       isLoading,
       createProject,
       editProject,
       viewProject,
       progressPercentage,
-      formatDate
+      formatDate,
+      openProjectChat,
+      closeChatModal
     }
   }
 }

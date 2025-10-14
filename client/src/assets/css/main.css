@@ -14,23 +14,31 @@
 
 @layer components {
   .btn {
-    @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200;
+    @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-300 transform hover:scale-105 active:scale-95;
   }
   
   .btn-primary {
-    @apply btn bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+    @apply btn bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 focus:ring-primary-500 shadow-glow hover:shadow-glow-lg;
   }
   
   .btn-secondary {
-    @apply btn bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500;
+    @apply btn bg-gradient-to-r from-secondary-500 to-secondary-600 text-white hover:from-secondary-600 hover:to-secondary-700 focus:ring-secondary-500 shadow-glow hover:shadow-glow-lg;
   }
   
   .btn-outline {
-    @apply btn border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:ring-primary-500 dark:border-gray-600 dark:text-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700;
+    @apply btn border-2 border-primary-300 text-primary-700 bg-white hover:bg-primary-50 hover:border-primary-400 focus:ring-primary-500 dark:border-primary-600 dark:text-primary-300 dark:bg-gray-800 dark:hover:bg-primary-900 dark:hover:border-primary-500;
   }
   
   .btn-danger {
-    @apply btn bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+    @apply btn bg-gradient-to-r from-danger-500 to-danger-600 text-white hover:from-danger-600 hover:to-danger-700 focus:ring-danger-500 shadow-glow hover:shadow-glow-lg;
+  }
+  
+  .btn-success {
+    @apply btn bg-gradient-to-r from-success-500 to-success-600 text-white hover:from-success-600 hover:to-success-700 focus:ring-success-500 shadow-glow hover:shadow-glow-lg;
+  }
+  
+  .btn-warning {
+    @apply btn bg-gradient-to-r from-warning-500 to-warning-600 text-white hover:from-warning-600 hover:to-warning-700 focus:ring-warning-500 shadow-glow hover:shadow-glow-lg;
   }
   
   .btn-sm {
@@ -41,40 +49,70 @@
     @apply px-6 py-3 text-base;
   }
   
+  /* Role-based button styles */
+  .btn-admin {
+    @apply btn bg-gradient-to-r from-admin-500 to-admin-600 text-white hover:from-admin-600 hover:to-admin-700 focus:ring-admin-500 shadow-glow hover:shadow-glow-lg;
+  }
+  
+  .btn-manager {
+    @apply btn bg-gradient-to-r from-manager-500 to-manager-600 text-white hover:from-manager-600 hover:to-manager-700 focus:ring-manager-500 shadow-glow hover:shadow-glow-lg;
+  }
+  
+  .btn-developer {
+    @apply btn bg-gradient-to-r from-developer-500 to-developer-600 text-white hover:from-developer-600 hover:to-developer-700 focus:ring-developer-500 shadow-glow hover:shadow-glow-lg;
+  }
+  
   .card {
-    @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700;
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1;
+  }
+  
+  .card-vibrant {
+    @apply card bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-glow hover:shadow-glow-lg;
   }
   
   .input {
-    @apply block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400;
+    @apply block w-full px-4 py-3 border-2 border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 transition-all duration-200;
   }
   
   .label {
-    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2;
   }
   
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold shadow-sm;
   }
   
   .badge-primary {
-    @apply badge bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200;
+    @apply badge bg-gradient-to-r from-primary-100 to-primary-200 text-primary-800 dark:from-primary-900 dark:to-primary-800 dark:text-primary-200;
   }
   
   .badge-success {
-    @apply badge bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200;
+    @apply badge bg-gradient-to-r from-success-100 to-success-200 text-success-800 dark:from-success-900 dark:to-success-800 dark:text-success-200;
   }
   
   .badge-warning {
-    @apply badge bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200;
+    @apply badge bg-gradient-to-r from-warning-100 to-warning-200 text-warning-800 dark:from-warning-900 dark:to-warning-800 dark:text-warning-200;
   }
   
   .badge-danger {
-    @apply badge bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200;
+    @apply badge bg-gradient-to-r from-danger-100 to-danger-200 text-danger-800 dark:from-danger-900 dark:to-danger-800 dark:text-danger-200;
   }
   
   .badge-gray {
-    @apply badge bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200;
+    @apply badge bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 dark:from-gray-700 dark:to-gray-600 dark:text-gray-200;
+  }
+  
+  /* Role-based badge styles */
+  .badge-admin {
+    @apply badge bg-gradient-to-r from-admin-100 to-admin-200 text-admin-800 dark:from-admin-900 dark:to-admin-800 dark:text-admin-200 animate-pulse-glow;
+  }
+  
+  .badge-manager {
+    @apply badge bg-gradient-to-r from-manager-100 to-manager-200 text-manager-800 dark:from-manager-900 dark:to-manager-800 dark:text-manager-200;
+  }
+  
+  .badge-developer {
+    @apply badge bg-gradient-to-r from-developer-100 to-developer-200 text-developer-800 dark:from-developer-900 dark:to-developer-800 dark:text-developer-200;
   }
   
   .priority-low {

@@ -12,58 +12,58 @@
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <div class="card p-6">
+      <div class="card-vibrant p-6 animate-fade-in">
         <div class="flex items-center">
           <div class="flex-shrink-0">
-            <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-              <CheckSquare class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <div class="w-12 h-12 bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900 dark:to-primary-800 rounded-xl flex items-center justify-center shadow-glow animate-float">
+              <CheckSquare class="h-6 w-6 text-primary-600 dark:text-primary-400" />
             </div>
           </div>
           <div class="ml-4">
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Tasks</p>
-            <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.totalTasks || 0 }}</p>
+            <p class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.totalTasks || 0 }}</p>
           </div>
         </div>
       </div>
 
-      <div class="card p-6">
+      <div class="card-vibrant p-6 animate-fade-in" style="animation-delay: 0.1s">
         <div class="flex items-center">
           <div class="flex-shrink-0">
-            <div class="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
-              <CheckCircle class="h-5 w-5 text-green-600 dark:text-green-400" />
+            <div class="w-12 h-12 bg-gradient-to-br from-success-100 to-success-200 dark:from-success-900 dark:to-success-800 rounded-xl flex items-center justify-center shadow-glow animate-float" style="animation-delay: 0.5s">
+              <CheckCircle class="h-6 w-6 text-success-600 dark:text-success-400" />
             </div>
           </div>
           <div class="ml-4">
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Completed</p>
-            <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.completedTasks || 0 }}</p>
+            <p class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.completedTasks || 0 }}</p>
           </div>
         </div>
       </div>
 
-      <div class="card p-6">
+      <div class="card-vibrant p-6 animate-fade-in" style="animation-delay: 0.2s">
         <div class="flex items-center">
           <div class="flex-shrink-0">
-            <div class="w-8 h-8 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
-              <Clock class="h-5 w-5 text-orange-600 dark:text-orange-400" />
+            <div class="w-12 h-12 bg-gradient-to-br from-warning-100 to-warning-200 dark:from-warning-900 dark:to-warning-800 rounded-xl flex items-center justify-center shadow-glow animate-float" style="animation-delay: 1s">
+              <Clock class="h-6 w-6 text-warning-600 dark:text-warning-400" />
             </div>
           </div>
           <div class="ml-4">
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">In Progress</p>
-            <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.inProgressTasks || 0 }}</p>
+            <p class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.inProgressTasks || 0 }}</p>
           </div>
         </div>
       </div>
 
-      <div class="card p-6">
+      <div class="card-vibrant p-6 animate-fade-in" style="animation-delay: 0.3s">
         <div class="flex items-center">
           <div class="flex-shrink-0">
-            <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
-              <FolderOpen class="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            <div class="w-12 h-12 bg-gradient-to-br from-secondary-100 to-secondary-200 dark:from-secondary-900 dark:to-secondary-800 rounded-xl flex items-center justify-center shadow-glow animate-float" style="animation-delay: 1.5s">
+              <FolderOpen class="h-6 w-6 text-secondary-600 dark:text-secondary-400" />
             </div>
           </div>
           <div class="ml-4">
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Projects</p>
-            <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.projectsCount || 0 }}</p>
+            <p class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.projectsCount || 0 }}</p>
           </div>
         </div>
       </div>

@@ -138,14 +138,23 @@
 
           <div class="flex items-center space-x-2 ml-4">
             <button
+              @click.stop="openTaskChat(task)"
+              class="text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200"
+              title="Open Chat"
+            >
+              <MessageCircle class="h-4 w-4" />
+            </button>
+            <button
               @click.stop="editTask(task)"
-              class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
+              title="Edit Task"
             >
               <Edit class="h-4 w-4" />
             </button>
             <button
               @click.stop="deleteTask(task)"
-              class="text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+              class="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-200"
+              title="Delete Task"
             >
               <Trash2 class="h-4 w-4" />
             </button>
@@ -153,6 +162,15 @@
         </div>
       </div>
     </div>
+
+    <!-- Chat Modal -->
+    <ChatModal
+      :is-open="showChatModal"
+      :type="'task'"
+      :item-id="selectedTask?.id"
+      :item-name="selectedTask?.title"
+      @close="closeChatModal"
+    />
   </div>
 </template>
 
@@ -166,8 +184,10 @@ import {
   Calendar,
   FolderOpen,
   Edit,
-  Trash2
+  Trash2,
+  MessageCircle
 } from 'lucide-vue-next'
+import ChatModal from '../components/Chat/ChatModal.vue'
 
 export default {
   name: 'Tasks',
@@ -177,7 +197,9 @@ export default {
     Calendar,
     FolderOpen,
     Edit,
-    Trash2
+    Trash2,
+    MessageCircle,
+    ChatModal
   },
   setup() {
     const store = useStore()
@@ -186,6 +208,8 @@ export default {
     const searchQuery = ref('')
     const statusFilter = ref('')
     const priorityFilter = ref('')
+    const showChatModal = ref(false)
+    const selectedTask = ref(null)
 
     const tasks = computed(() => store.getters['tasks/tasks'])
     const filteredTasks = computed(() => store.getters['tasks/filteredTasks'])
@@ -246,6 +270,16 @@ export default {
       })
     }
 
+    const openTaskChat = (task) => {
+      selectedTask.value = task
+      showChatModal.value = true
+    }
+
+    const closeChatModal = () => {
+      showChatModal.value = false
+      selectedTask.value = null
+    }
+
     onMounted(() => {
       // Load tasks for all projects
       store.dispatch('projects/fetchProjects').then(() => {
@@ -261,6 +295,8 @@ export default {
       searchQuery,
       statusFilter,
       priorityFilter,
+      showChatModal,
+      selectedTask,
       tasks,
       filteredTasks,
       isLoading,
@@ -273,7 +309,9 @@ export default {
       handleFilter,
       clearFilters,
       isOverdue,
-      formatDate
+      formatDate,
+      openTaskChat,
+      closeChatModal
     }
   }
 }

@@ -1,262 +1,212 @@
-# TaskFlow - Collaborative Task Management
+# TaskFlow - Collaborative Task Management Platform
 
-A modern, full-stack task management application built with Vue.js, Express.js, Socket.io, and MySQL. Features real-time collaboration, project management, and team productivity tools.
+A modern, vibrant task management application built with Vue.js 3, Express.js, and real-time collaboration features.
 
-## 🚀 Features
+## ✨ Features
 
-### Core Features
-- **User Authentication** - JWT-based auth with social login (Google/GitHub)
-- **Project Management** - Create, organize, and manage projects with team members
-- **Task Management** - Full CRUD operations with priorities, deadlines, and subtasks
-- **Real-time Collaboration** - Live updates with Socket.io
-- **Role-based Access** - Admin, Member, and Viewer roles
+### 🎨 **Vibrant UI/UX**
+- **Dark Mode Support**: Seamless light/dark theme switching
+- **Animated Components**: Smooth transitions and engaging animations
+- **Gradient Design**: Beautiful gradient backgrounds and effects
+- **Responsive Layout**: Mobile-first design that works on all devices
 
-### Advanced Features
-- **Kanban Board** - Drag-and-drop task management
-- **Calendar View** - Timeline and deadline visualization
-- **Analytics Dashboard** - Project progress and team performance metrics
-- **Activity Feed** - Real-time notifications and updates
-- **Dark Mode** - Modern UI with theme switching
-- **Responsive Design** - Mobile and desktop optimized
+### 👥 **Role-Based Access**
+- **Admin**: Full system control with red theme and crown indicator 👑
+- **Manager**: Project oversight with green theme and chart indicator 📊
+- **Developer**: Task execution with blue theme and code indicator 💻
 
-### Developer Features
-- **RESTful API** - Well-documented Express.js backend
-- **Real-time Updates** - Socket.io for live collaboration
-- **Database Seeding** - Demo data for easy testing
-- **Error Handling** - Comprehensive error management
-- **Security** - Rate limiting, CORS, and input validation
+### 💬 **Real-Time Collaboration**
+- **Task Chat**: Individual chat for each task
+- **Project Chat**: Team collaboration on project level
+- **Global Chat**: Organization-wide communication
+- **Live Features**: Typing indicators, online status, message timestamps
 
-## 🛠 Tech Stack
+### 📋 **Task Management**
+- Create, edit, and delete tasks
+- Priority levels (Low, Medium, High, Urgent)
+- Status tracking (To Do, In Progress, Review, Done)
+- Due date management
+- Task assignment and filtering
 
-### Frontend
-- **Vue.js 3** - Progressive JavaScript framework
-- **Vuex** - State management
-- **Vue Router** - Client-side routing
-- **Tailwind CSS** - Utility-first CSS framework
-- **Socket.io Client** - Real-time communication
-- **Lucide Vue** - Beautiful icons
+### 📁 **Project Organization**
+- Project creation and management
+- Progress tracking with visual indicators
+- Team member management
+- Project-specific chat and collaboration
 
-### Backend
-- **Node.js** - JavaScript runtime
-- **Express.js** - Web application framework
-- **Socket.io** - Real-time bidirectional communication
-- **MySQL** - Relational database
-- **JWT** - JSON Web Tokens for authentication
-- **Passport.js** - Authentication middleware
-- **Bcrypt** - Password hashing
-- **Multer 2.x** - File upload handling
-
-## 📦 Installation
+## 🚀 **Quick Start**
 
 ### Prerequisites
-- Node.js (v16 or higher)
-- MySQL (v8 or higher)
+- Node.js 16+ 
 - npm or yarn
+- MySQL database (or use provided setup scripts)
 
-### Backend Setup
+### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd task-management
+   git clone https://github.com/yourusername/taskflow.git
+   cd taskflow
    ```
 
 2. **Install dependencies**
    ```bash
+   # Install server dependencies
    npm install
-   ```
-
-3. **Database setup**
-   ```bash
-   # Create MySQL database
-   mysql -u root -p
-   CREATE DATABASE task_management;
-   exit
    
-   # Import schema
-   mysql -u root -p task_management < server/schema.sql
-   ```
-
-4. **Environment configuration**
-   ```bash
-   cp env.example .env
-   # Edit .env with your database credentials and other settings
-   ```
-
-5. **Seed demo data**
-   ```bash
-   npm run seed
-   ```
-
-6. **Start the server**
-   ```bash
-   npm run server
-   ```
-
-### Frontend Setup
-
-1. **Navigate to client directory**
-   ```bash
+   # Install client dependencies
    cd client
-   ```
-
-2. **Install dependencies**
-   ```bash
    npm install
+   cd ..
    ```
 
-3. **Environment configuration**
+3. **Environment Setup**
    ```bash
+   # Copy environment files
    cp env.example .env
-   # Edit .env with your API URL
+   cp client/env.example client/.env
+   
+   # Edit .env files with your configuration
    ```
 
-4. **Start the development server**
+4. **Database Setup**
    ```bash
-   npm run serve
+   # Run database setup script
+   node setup-database.bat  # Windows
+   # or
+   chmod +x setup-database.sh && ./setup-database.sh  # Linux/Mac
    ```
 
-5. **Access the application**
+5. **Start Development Server**
+   ```bash
+   npm run dev
+   ```
+
+   The application will be available at:
    - Frontend: http://localhost:8080
-   - Backend API: http://localhost:3000/api
-   - Health Check: http://localhost:3000/api/health
+   - Backend API: http://localhost:3000
 
-## 🎯 Demo Accounts
+## 🛠 **Tech Stack**
 
-Use these credentials to explore the application:
+### Frontend
+- **Vue.js 3** - Progressive JavaScript framework
+- **Vue Router** - Client-side routing
+- **Vuex** - State management
+- **Tailwind CSS** - Utility-first CSS framework
+- **Lucide Vue** - Beautiful icons
+- **Socket.io Client** - Real-time communication
 
-| Email | Password | Role |
-|-------|----------|------|
-| admin@demo.com | password123 | Admin |
-| john@demo.com | password123 | Member |
-| jane@demo.com | password123 | Member |
-| mike@demo.com | password123 | Member |
-| sarah@demo.com | password123 | Member |
+### Backend
+- **Express.js** - Web application framework
+- **Socket.io** - Real-time bidirectional communication
+- **MySQL** - Relational database
+- **JWT** - Authentication
+- **Passport.js** - Authentication middleware
+- **Bcrypt** - Password hashing
 
-## 📱 Usage
-
-### Getting Started
-1. **Sign Up/Login** - Create an account or use demo credentials
-2. **Create Project** - Set up your first project
-3. **Add Team Members** - Invite collaborators
-4. **Create Tasks** - Add tasks with priorities and deadlines
-5. **Collaborate** - Use real-time features for team coordination
-
-### Key Workflows
-- **Project Management** - Organize tasks by projects
-- **Task Assignment** - Assign tasks to team members
-- **Progress Tracking** - Monitor completion status
-- **Team Communication** - Use comments and activity feeds
-- **Analytics** - View performance metrics and insights
-
-## 🔧 API Documentation
-
-### Authentication Endpoints
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `GET /api/auth/me` - Get current user
-- `GET /api/auth/google` - Google OAuth
-- `GET /api/auth/github` - GitHub OAuth
-
-### Project Endpoints
-- `GET /api/projects` - List user projects
-- `POST /api/projects` - Create project
-- `GET /api/projects/:id` - Get project details
-- `PUT /api/projects/:id` - Update project
-- `DELETE /api/projects/:id` - Delete project
-
-### Task Endpoints
-- `GET /api/tasks/project/:id` - List project tasks
-- `POST /api/tasks` - Create task
-- `GET /api/tasks/:id` - Get task details
-- `PUT /api/tasks/:id` - Update task
-- `DELETE /api/tasks/:id` - Delete task
-
-## 🚀 Deployment
+## 📦 **Deployment**
 
 ### Vercel Deployment
 
-1. **Prepare for deployment**
+1. **Connect to GitHub**
+   - Push your code to GitHub
+   - Connect your repository to Vercel
+
+2. **Environment Variables**
+   Set these in Vercel dashboard:
+   ```
+   NODE_ENV=production
+   DB_HOST=your_database_host
+   DB_USER=your_database_user
+   DB_PASSWORD=your_database_password
+   DB_NAME=your_database_name
+   JWT_SECRET=your_jwt_secret
+   ```
+
+3. **Build Settings**
+   - Build Command: `cd client && npm run build`
+   - Output Directory: `client/dist`
+   - Install Command: `npm install && cd client && npm install`
+
+### Manual Deployment
+
+1. **Build the application**
    ```bash
-   # Build the frontend
-   cd client
    npm run build
    ```
 
-2. **Deploy to Vercel**
+2. **Start production server**
    ```bash
-   # Install Vercel CLI
-   npm i -g vercel
-   
-   # Deploy
-   vercel
+   npm start
    ```
 
-3. **Environment variables**
-   - Set up environment variables in Vercel dashboard
-   - Configure database connection
-   - Set up OAuth credentials
+## 🎯 **Usage**
 
-### Database Setup
-- Use a cloud MySQL service (PlanetScale, AWS RDS, etc.)
-- Update connection string in environment variables
-- Run database migrations
+### Getting Started
+1. **Register/Login**: Create an account or use demo credentials
+2. **Choose Role**: Select your role (Admin, Manager, Developer)
+3. **Create Projects**: Set up your first project
+4. **Add Tasks**: Create and assign tasks to team members
+5. **Collaborate**: Use chat features for real-time communication
 
-## 🧪 Testing
+### Key Features
+- **Dashboard**: Overview of tasks, projects, and team activity
+- **Task Management**: Create, edit, and track task progress
+- **Project Organization**: Manage projects with team collaboration
+- **Real-time Chat**: Communicate with team members instantly
+- **Role-based Access**: Different permissions based on user role
 
-```bash
-# Run backend tests
-npm test
+## 🔧 **Configuration**
 
-# Run frontend tests
-cd client
-npm test
+### Environment Variables
 
-# Run e2e tests
-npm run test:e2e
+**Server (.env)**
+```env
+NODE_ENV=development
+PORT=3000
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_password
+DB_NAME=taskflow
+JWT_SECRET=your_jwt_secret
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
 ```
 
-## 📊 Performance
+**Client (client/.env)**
+```env
+VUE_APP_API_URL=http://localhost:3000
+VUE_APP_SOCKET_URL=http://localhost:3000
+```
 
-- **Real-time Updates** - Sub-100ms latency
-- **Database Queries** - Optimized with proper indexing
-- **Frontend Bundle** - Code splitting and lazy loading
-- **Caching** - Redis for session management
-- **CDN** - Static asset optimization
-
-## 🔒 Security
-
-- **Authentication** - JWT tokens with expiration
-- **Authorization** - Role-based access control
-- **Input Validation** - Comprehensive data validation
-- **Rate Limiting** - API request throttling
-- **CORS** - Cross-origin resource sharing
-- **HTTPS** - SSL/TLS encryption
-
-## 🤝 Contributing
+## 🤝 **Contributing**
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## 📄 License
+## 📝 **License**
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## 🙏 **Acknowledgments**
 
 - Vue.js team for the amazing framework
-- Express.js community for the robust backend
-- Socket.io for real-time capabilities
-- Tailwind CSS for the utility-first approach
-- All contributors and testers
+- Tailwind CSS for the utility-first CSS approach
+- Lucide for the beautiful icon set
+- Socket.io for real-time communication capabilities
 
-## 📞 Support
+## 📞 **Support**
 
-For support, email support@taskflow.com or create an issue in the repository.
+If you have any questions or need help, please:
+- Open an issue on GitHub
+- Check the documentation
+- Contact the development team
 
 ---
 
-**Built with ❤️ for job interviews and portfolio demonstrations**
+**Made with ❤️ by the TaskFlow Team**
