@@ -7,10 +7,10 @@ const toast = useToast()
 // Determine API URL based on environment
 const getApiUrl = () => {
   if (process.env.NODE_ENV === 'production') {
-    // In production, use the Vercel backend URL
-    return 'https://server-hbuukh6j8-iansia.vercel.app/api'
+    // In production, use the current Vercel deployment URL
+    return 'https://task-managment-1kk6px26h-iansia.vercel.app'
   }
-  return process.env.VUE_APP_API_URL || 'http://localhost:3000/api'
+  return process.env.VUE_APP_API_URL || 'http://localhost:3000'
 }
 
 // Create axios instance
