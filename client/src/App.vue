@@ -1,8 +1,11 @@
 <template>
   <div id="app" :class="{ 'dark': darkMode }">
     <div class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      <!-- Router View for all pages -->
-      <router-view />
+      <!-- Layout for authenticated pages -->
+      <AppLayout v-if="isAuthenticated" />
+      
+      <!-- Router View for non-authenticated pages -->
+      <router-view v-else />
       
       <!-- Global Chat Widget -->
       <ChatWidget
@@ -19,11 +22,13 @@
 import { computed, onMounted } from 'vue'
 import { useStore } from 'vuex'
 import ChatWidget from './components/Chat/ChatWidget.vue'
+import AppLayout from './components/Layout/AppLayout.vue'
 
 export default {
   name: 'App',
   components: {
-    ChatWidget
+    ChatWidget,
+    AppLayout
   },
   setup() {
     const store = useStore()

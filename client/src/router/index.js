@@ -57,6 +57,18 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/calendar',
+    name: 'Calendar',
+    component: () => import('../views/Calendar.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/analytics',
+    name: 'Analytics',
+    component: () => import('../views/Analytics.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('../views/NotFound.vue'),

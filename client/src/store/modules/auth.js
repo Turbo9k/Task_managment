@@ -78,23 +78,24 @@ const actions = {
     commit('SET_LOADING', true)
     
     // Demo mode - simulate successful login
-    setTimeout(() => {
-      const demoUser = {
-        id: 1,
-        name: 'Demo User',
-        email: credentials.email || 'demo@example.com',
-        avatar: null,
-        role: 'admin'
-      }
-      
-      commit('SET_TOKEN', 'demo-token')
-      commit('SET_USER', demoUser)
-      commit('SET_LOADING', false)
-      
-      toast.success('Welcome to TaskFlow Demo!')
-    }, 1000)
-    
-    return { success: true }
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const demoUser = {
+          id: 1,
+          name: 'Demo User',
+          email: credentials.email || 'demo@example.com',
+          avatar: null,
+          role: 'admin'
+        }
+        
+        commit('SET_TOKEN', 'demo-token')
+        commit('SET_USER', demoUser)
+        commit('SET_LOADING', false)
+        
+        toast.success('Welcome to TaskFlow Demo!')
+        resolve({ success: true })
+      }, 1000)
+    })
     
     // Original login code (commented out for demo)
     /*
@@ -121,23 +122,24 @@ const actions = {
     commit('SET_LOADING', true)
     
     // Demo mode - simulate successful registration
-    setTimeout(() => {
-      const demoUser = {
-        id: 1,
-        name: userData.name || 'Demo User',
-        email: userData.email || 'demo@example.com',
-        avatar: null,
-        role: 'admin'
-      }
-      
-      commit('SET_TOKEN', 'demo-token')
-      commit('SET_USER', demoUser)
-      commit('SET_LOADING', false)
-      
-      toast.success('Welcome to TaskFlow Demo!')
-    }, 1000)
-    
-    return { success: true }
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const demoUser = {
+          id: 1,
+          name: userData.name || 'Demo User',
+          email: userData.email || 'demo@example.com',
+          avatar: null,
+          role: 'admin'
+        }
+        
+        commit('SET_TOKEN', 'demo-token')
+        commit('SET_USER', demoUser)
+        commit('SET_LOADING', false)
+        
+        toast.success('Welcome to TaskFlow Demo!')
+        resolve({ success: true })
+      }, 1000)
+    })
     
     // Original register code (commented out for demo)
     /*
