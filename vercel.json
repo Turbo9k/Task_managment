@@ -5,7 +5,7 @@
       "src": "server/index.js",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["server/**"]
+        "includeFiles": ["server/**", "package.json", "package-lock.json"]
       }
     },
     {
@@ -28,5 +28,10 @@
   ],
   "env": {
     "NODE_ENV": "production"
+  },
+  "functions": {
+    "server/index.js": {
+      "maxDuration": 30
+    }
   }
 }
