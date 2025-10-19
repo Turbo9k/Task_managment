@@ -8,7 +8,7 @@ const toast = useToast()
 const getApiUrl = () => {
   if (process.env.NODE_ENV === 'production') {
     // In production, use the Vercel backend URL
-    return 'https://task-management-backend.vercel.app/api'
+    return 'https://server-hbuukh6j8-iansia.vercel.app/api'
   }
   return process.env.VUE_APP_API_URL || 'http://localhost:3000/api'
 }
