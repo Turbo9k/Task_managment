@@ -2,17 +2,43 @@
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
       <div class="text-center">
-        <h1 class="text-3xl font-bold text-primary-600 dark:text-primary-400">TaskFlow</h1>
+        <!-- Enhanced TaskFlow Logo -->
+        <div class="flex justify-center mb-6">
+          <div class="relative">
+            <!-- Logo Background -->
+            <div class="w-20 h-20 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 rounded-2xl shadow-2xl flex items-center justify-center transform rotate-3 hover:rotate-0 transition-transform duration-300">
+              <!-- Task Icon -->
+              <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+              </svg>
+            </div>
+            <!-- Floating Elements -->
+            <div class="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-accent-400 to-accent-500 rounded-full animate-bounce"></div>
+            <div class="absolute -bottom-1 -left-1 w-4 h-4 bg-gradient-to-br from-success-400 to-success-500 rounded-full animate-pulse"></div>
+          </div>
+        </div>
+        
+        <!-- Brand Name with Enhanced Styling -->
+        <div class="mb-2">
+          <h1 class="text-4xl font-black bg-gradient-to-r from-primary-600 via-primary-700 to-primary-800 dark:from-primary-400 dark:via-primary-300 dark:to-primary-200 bg-clip-text text-transparent">
+            TaskFlow
+          </h1>
+          <div class="w-24 h-1 bg-gradient-to-r from-primary-500 to-accent-500 mx-auto rounded-full mt-2"></div>
+        </div>
+        
         <h2 class="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
-          Create your account
+          Join the team! 🚀
         </h2>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Or
+          Start your productivity journey with us
+        </p>
+        <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+          Already have an account?
           <router-link
             to="/login"
-            class="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
+            class="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 transition-colors duration-200"
           >
-            sign in to your existing account
+            Sign in here
           </router-link>
         </p>
       </div>

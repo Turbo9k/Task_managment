@@ -5,8 +5,19 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <h1 class="text-2xl font-bold text-primary-600 dark:text-primary-400">TaskFlow</h1>
+            <div class="flex-shrink-0 flex items-center space-x-3">
+              <!-- Enhanced Logo -->
+              <div class="relative">
+                <div class="w-10 h-10 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 rounded-xl shadow-lg flex items-center justify-center transform hover:rotate-3 transition-transform duration-300">
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                  </svg>
+                </div>
+                <div class="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-br from-accent-400 to-accent-500 rounded-full animate-pulse"></div>
+              </div>
+              <h1 class="text-2xl font-bold bg-gradient-to-r from-primary-600 via-primary-700 to-primary-800 dark:from-primary-400 dark:via-primary-300 dark:to-primary-200 bg-clip-text text-transparent">
+                TaskFlow
+              </h1>
             </div>
           </div>
           <div class="flex items-center space-x-4">
@@ -159,7 +170,19 @@
     <footer class="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div class="text-center">
-          <h3 class="text-2xl font-bold text-primary-600 dark:text-primary-400 mb-4">TaskFlow</h3>
+          <div class="flex justify-center mb-4">
+            <div class="relative">
+              <div class="w-12 h-12 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 rounded-xl shadow-lg flex items-center justify-center transform hover:rotate-3 transition-transform duration-300">
+                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                </svg>
+              </div>
+              <div class="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-br from-accent-400 to-accent-500 rounded-full animate-pulse"></div>
+            </div>
+          </div>
+          <h3 class="text-2xl font-bold bg-gradient-to-r from-primary-600 via-primary-700 to-primary-800 dark:from-primary-400 dark:via-primary-300 dark:to-primary-200 bg-clip-text text-transparent mb-4">
+            TaskFlow
+          </h3>
           <p class="text-gray-600 dark:text-gray-300 mb-4">
             Built with Vue.js, Express.js, and Socket.io for modern teams.
           </p>
