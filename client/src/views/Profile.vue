@@ -116,9 +116,11 @@
             </button>
             <button
               @click="exportData"
-              class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+              :disabled="isExporting"
+              class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md disabled:opacity-50 flex items-center"
             >
-              Export Data
+              <div v-if="isExporting" class="loading-spinner mr-2"></div>
+              {{ isExporting ? 'Exporting...' : 'Export Data' }}
             </button>
             <button
               @click="deleteAccount"
@@ -130,15 +132,25 @@
         </div>
       </div>
     </div>
+
+    <!-- Change Password Modal -->
+    <ChangePasswordModal v-if="showChangePasswordModal" @close="showChangePasswordModal = false" />
   </div>
 </template>
 
 <script>
 import { ref, computed, onMounted } from 'vue'
 import { useStore } from 'vuex'
+import { useToast } from 'vue-toastification'
+import ChangePasswordModal from '../components/Modals/ChangePasswordModal.vue'
+
+const toast = useToast()
 
 export default {
   name: 'Profile',
+  components: {
+    ChangePasswordModal
+  },
   setup() {
     const store = useStore()
 
@@ -149,6 +161,8 @@ export default {
     })
 
     const isUploading = ref(false)
+    const isExporting = ref(false)
+    const showChangePasswordModal = ref(false)
 
     const user = computed(() => store.getters['auth/user'])
     const isLoading = computed(() => store.getters['auth/isLoading'])
@@ -210,19 +224,60 @@ export default {
     }
 
     const changePassword = () => {
-      // Implement password change modal
-      console.log('Change password')
+      showChangePasswordModal.value = true
     }
 
-    const exportData = () => {
-      // Implement data export
-      console.log('Export data')
+    const exportData = async () => {
+      try {
+        // Show loading state
+        isExporting.value = true
+        
+        // Simulate data export
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        
+        // Create and download export file
+        const exportData = {
+          user: user.value,
+          projects: [], // Would fetch from store
+          tasks: [], // Would fetch from store
+          settings: {
+            darkMode: store.getters['ui/darkMode'],
+            notifications: store.getters['ui/notifications']
+          },
+          exportDate: new Date().toISOString()
+        }
+        
+        const dataStr = JSON.stringify(exportData, null, 2)
+        const dataBlob = new Blob([dataStr], { type: 'application/json' })
+        const url = URL.createObjectURL(dataBlob)
+        
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `taskflow-export-${new Date().toISOString().split('T')[0]}.json`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+        
+        toast.success('Data exported successfully!')
+      } catch (error) {
+        console.error('Export error:', error)
+        toast.error('Failed to export data. Please try again.')
+      } finally {
+        isExporting.value = false
+      }
     }
 
-    const deleteAccount = () => {
-      if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-        // Implement account deletion
-        console.log('Delete account')
+    const deleteAccount = async () => {
+      if (confirm('Are you sure you want to delete your account? This action cannot be undone and will permanently remove all your data.')) {
+        try {
+          const result = await store.dispatch('auth/deleteAccount')
+          if (result.success) {
+            // User will be redirected to login by the auth store
+          }
+        } catch (error) {
+          console.error('Delete account error:', error)
+        }
       }
     }
 
@@ -249,6 +304,8 @@ export default {
     return {
       form,
       isUploading,
+      isExporting,
+      showChangePasswordModal,
       user,
       isLoading,
       defaultAvatar,

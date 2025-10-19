@@ -225,15 +225,9 @@ export default {
       }
     }
 
-    const handleSocialLogin = async (provider) => {
-      // Demo mode - simulate social login
-      const result = await store.dispatch('auth/socialLogin', { 
-        provider, 
-        token: `demo-${provider}-token` 
-      })
-      if (result.success) {
-        router.push('/dashboard')
-      }
+    const handleSocialLogin = (provider) => {
+      const baseUrl = process.env.VUE_APP_API_URL || 'http://localhost:3000'
+      window.location.href = `${baseUrl}/api/auth/${provider}`
     }
 
     return {

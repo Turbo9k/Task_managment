@@ -43,12 +43,6 @@ const mutations = {
 
 const actions = {
   async checkAuth({ commit, state }) {
-    // For demo purposes, skip auth check and just clear loading
-    commit('SET_LOADING', false)
-    return
-    
-    // Original auth check code (commented out for demo)
-    /*
     if (!state.token) {
       commit('SET_LOADING', false)
       return
@@ -62,7 +56,6 @@ const actions = {
       commit('SET_TOKEN', state.token)
     } catch (error) {
       console.error('Auth check failed:', error)
-      // Don't logout on network errors, just clear loading
       if (error.code === 'NETWORK_ERROR' || !error.response) {
         console.log('Network error during auth check, continuing without auth')
       } else {
@@ -71,34 +64,11 @@ const actions = {
     } finally {
       commit('SET_LOADING', false)
     }
-    */
   },
 
   async login({ commit }, credentials) {
     commit('SET_LOADING', true)
     
-    // Demo mode - simulate successful login
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const demoUser = {
-          id: 1,
-          name: 'Demo User',
-          email: credentials.email || 'demo@example.com',
-          avatar: null,
-          role: 'admin'
-        }
-        
-        commit('SET_TOKEN', 'demo-token')
-        commit('SET_USER', demoUser)
-        commit('SET_LOADING', false)
-        
-        toast.success('Welcome to TaskFlow Demo!')
-        resolve({ success: true })
-      }, 1000)
-    })
-    
-    // Original login code (commented out for demo)
-    /*
     try {
       const response = await api.post('/auth/login', credentials)
       const { token, user } = response.data
@@ -115,34 +85,11 @@ const actions = {
     } finally {
       commit('SET_LOADING', false)
     }
-    */
   },
 
   async register({ commit }, userData) {
     commit('SET_LOADING', true)
     
-    // Demo mode - simulate successful registration
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const demoUser = {
-          id: 1,
-          name: userData.name || 'Demo User',
-          email: userData.email || 'demo@example.com',
-          avatar: null,
-          role: 'admin'
-        }
-        
-        commit('SET_TOKEN', 'demo-token')
-        commit('SET_USER', demoUser)
-        commit('SET_LOADING', false)
-        
-        toast.success('Welcome to TaskFlow Demo!')
-        resolve({ success: true })
-      }, 1000)
-    })
-    
-    // Original register code (commented out for demo)
-    /*
     try {
       const response = await api.post('/auth/register', userData)
       const { token, user } = response.data
@@ -159,35 +106,11 @@ const actions = {
     } finally {
       commit('SET_LOADING', false)
     }
-    */
   },
 
   async socialLogin({ commit }, { provider, token }) {
     commit('SET_LOADING', true)
     
-    // Demo mode - simulate successful social login
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const demoUser = {
-          id: 1,
-          name: `Demo User (${provider})`,
-          email: `demo@${provider}.com`,
-          avatar: null,
-          role: 'admin',
-          provider: provider
-        }
-        
-        commit('SET_TOKEN', token)
-        commit('SET_USER', demoUser)
-        commit('SET_LOADING', false)
-        
-        toast.success(`Welcome! Signed in with ${provider}`)
-        resolve({ success: true })
-      }, 1000)
-    })
-    
-    // Original social login code (commented out for demo)
-    /*
     try {
       // Verify the token with backend
       const response = await api.get('/auth/me', {
@@ -206,7 +129,6 @@ const actions = {
     } finally {
       commit('SET_LOADING', false)
     }
-    */
   },
 
   async logout({ commit, dispatch }) {
@@ -228,28 +150,7 @@ const actions = {
     }
   },
 
-  async updateProfile({ commit, state }, profileData) {
-    commit('SET_LOADING', true)
-    
-    // Demo mode - simulate successful profile update
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const updatedUser = {
-          ...state.user,
-          ...profileData,
-          updated_at: new Date().toISOString()
-        }
-        
-        commit('SET_USER', updatedUser)
-        commit('SET_LOADING', false)
-        
-        toast.success('Profile updated successfully!')
-        resolve({ success: true })
-      }, 1000)
-    })
-    
-    // Original profile update code (commented out for demo)
-    /*
+  async updateProfile({ commit }, profileData) {
     try {
       const response = await api.put('/users/profile', profileData)
       commit('SET_USER', response.data)
@@ -260,7 +161,34 @@ const actions = {
       toast.error(message)
       return { success: false, error: message }
     }
-    */
+  },
+
+  async changePassword({ commit }, passwordData) {
+    try {
+      await api.put('/auth/change-password', passwordData)
+      toast.success('Password changed successfully')
+      return { success: true }
+    } catch (error) {
+      const message = error.response?.data?.error || 'Password change failed'
+      toast.error(message)
+      return { success: false, error: message }
+    }
+  },
+
+  async deleteAccount({ commit, dispatch }) {
+    try {
+      await api.delete('/users/account')
+      
+      // Clear all data and logout
+      await dispatch('logout')
+      
+      toast.success('Account deleted successfully')
+      return { success: true }
+    } catch (error) {
+      const message = error.response?.data?.error || 'Account deletion failed'
+      toast.error(message)
+      return { success: false, error: message }
+    }
   }
 }
 
