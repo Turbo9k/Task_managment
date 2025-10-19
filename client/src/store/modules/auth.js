@@ -6,7 +6,7 @@ const toast = useToast()
 const state = {
   user: null,
   token: localStorage.getItem('token'),
-  isLoading: false,
+  isLoading: true,
   isAuthenticated: false
 }
 

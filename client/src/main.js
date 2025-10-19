@@ -27,5 +27,8 @@ app.use(Toast, {
   rtl: false
 })
 
+// Initialize auth state
+store.dispatch('auth/checkAuth')
+
 // Mount app
 app.mount('#app')

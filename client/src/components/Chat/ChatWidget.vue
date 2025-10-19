@@ -117,7 +117,7 @@ export default {
     type: {
       type: String,
       required: true,
-      validator: (value) => ['task', 'project'].includes(value)
+      validator: (value) => ['task', 'project', 'global'].includes(value)
     },
     itemId: {
       type: [String, Number],
