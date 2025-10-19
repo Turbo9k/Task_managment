@@ -159,23 +159,47 @@ export default {
     const loadMessages = async () => {
       try {
         isLoading.value = true
-        // Simulate loading messages
+        // Simulate loading messages with more realistic content
         const mockMessages = [
           {
             id: 1,
-            content: `Welcome to ${props.itemName} chat!`,
+            content: `Welcome to ${props.itemName} chat! 👋`,
             senderId: 'system',
             senderName: 'System',
             senderAvatar: null,
-            timestamp: new Date(Date.now() - 60000)
+            timestamp: new Date(Date.now() - 300000) // 5 minutes ago
           },
           {
             id: 2,
-            content: 'This is a demo message for collaboration.',
-            senderId: 'demo-user',
-            senderName: 'Demo User',
-            senderAvatar: defaultAvatar,
-            timestamp: new Date(Date.now() - 30000)
+            content: 'Hey team! How is everyone doing?',
+            senderId: 'demo-user-1',
+            senderName: 'Sarah Johnson',
+            senderAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
+            timestamp: new Date(Date.now() - 240000) // 4 minutes ago
+          },
+          {
+            id: 3,
+            content: 'Great! Just finished the user authentication module 🎉',
+            senderId: 'demo-user-2',
+            senderName: 'Mike Chen',
+            senderAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+            timestamp: new Date(Date.now() - 180000) // 3 minutes ago
+          },
+          {
+            id: 4,
+            content: 'Awesome work Mike! The UI looks fantastic',
+            senderId: 'demo-user-3',
+            senderName: 'Emily Davis',
+            senderAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
+            timestamp: new Date(Date.now() - 120000) // 2 minutes ago
+          },
+          {
+            id: 5,
+            content: 'Thanks! Ready for the next sprint planning?',
+            senderId: 'demo-user-2',
+            senderName: 'Mike Chen',
+            senderAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+            timestamp: new Date(Date.now() - 60000) // 1 minute ago
           }
         ]
         messages.value = mockMessages
@@ -206,13 +230,37 @@ export default {
       isTyping.value = true
       setTimeout(() => {
         isTyping.value = false
-        // Simulate response
+        
+        // Generate realistic responses based on message content
+        const responses = [
+          "That sounds great! 👍",
+          "I agree with that approach",
+          "Let me know if you need any help with that",
+          "Perfect! When do you think we can implement this?",
+          "Nice work! 🚀",
+          "I'll take a look at that and get back to you",
+          "That's a good point, we should discuss this in the next meeting",
+          "Awesome! Can't wait to see the results"
+        ]
+        
+        const randomResponse = responses[Math.floor(Math.random() * responses.length)]
+        
+        // Simulate response from different team members
+        const teamMembers = [
+          { name: 'Sarah Johnson', avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face' },
+          { name: 'Mike Chen', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face' },
+          { name: 'Emily Davis', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face' },
+          { name: 'Alex Rodriguez', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face' }
+        ]
+        
+        const randomMember = teamMembers[Math.floor(Math.random() * teamMembers.length)]
+        
         const response = {
           id: Date.now() + 1,
-          content: 'Thanks for your message! This is a demo response.',
-          senderId: 'other-user',
-          senderName: 'Team Member',
-          senderAvatar: defaultAvatar,
+          content: randomResponse,
+          senderId: `team-member-${Date.now()}`,
+          senderName: randomMember.name,
+          senderAvatar: randomMember.avatar,
           timestamp: new Date()
         }
         messages.value.push(response)
@@ -231,13 +279,25 @@ export default {
     }
 
     const joinChat = () => {
-      onlineUsers.value = Math.floor(Math.random() * 5) + 1
-      // In a real app, this would connect to a WebSocket
+      // Simulate realistic online users count
+      onlineUsers.value = Math.floor(Math.random() * 8) + 2
+      
+      // Simulate online users changing over time
+      const interval = setInterval(() => {
+        const change = Math.random() > 0.5 ? 1 : -1
+        onlineUsers.value = Math.max(1, onlineUsers.value + change)
+      }, 10000)
+      
+      // Store interval ID for cleanup
+      window.chatInterval = interval
     }
 
     const leaveChat = () => {
       onlineUsers.value = 0
-      // In a real app, this would disconnect from WebSocket
+      if (window.chatInterval) {
+        clearInterval(window.chatInterval)
+        window.chatInterval = null
+      }
     }
 
     const formatTime = (timestamp) => {

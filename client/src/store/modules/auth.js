@@ -165,6 +165,29 @@ const actions = {
   async socialLogin({ commit }, { provider, token }) {
     commit('SET_LOADING', true)
     
+    // Demo mode - simulate successful social login
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const demoUser = {
+          id: 1,
+          name: `Demo User (${provider})`,
+          email: `demo@${provider}.com`,
+          avatar: null,
+          role: 'admin',
+          provider: provider
+        }
+        
+        commit('SET_TOKEN', token)
+        commit('SET_USER', demoUser)
+        commit('SET_LOADING', false)
+        
+        toast.success(`Welcome! Signed in with ${provider}`)
+        resolve({ success: true })
+      }, 1000)
+    })
+    
+    // Original social login code (commented out for demo)
+    /*
     try {
       // Verify the token with backend
       const response = await api.get('/auth/me', {
@@ -183,6 +206,7 @@ const actions = {
     } finally {
       commit('SET_LOADING', false)
     }
+    */
   },
 
   async logout({ commit, dispatch }) {
@@ -204,7 +228,28 @@ const actions = {
     }
   },
 
-  async updateProfile({ commit }, profileData) {
+  async updateProfile({ commit, state }, profileData) {
+    commit('SET_LOADING', true)
+    
+    // Demo mode - simulate successful profile update
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const updatedUser = {
+          ...state.user,
+          ...profileData,
+          updated_at: new Date().toISOString()
+        }
+        
+        commit('SET_USER', updatedUser)
+        commit('SET_LOADING', false)
+        
+        toast.success('Profile updated successfully!')
+        resolve({ success: true })
+      }, 1000)
+    })
+    
+    // Original profile update code (commented out for demo)
+    /*
     try {
       const response = await api.put('/users/profile', profileData)
       commit('SET_USER', response.data)
@@ -215,6 +260,7 @@ const actions = {
       toast.error(message)
       return { success: false, error: message }
     }
+    */
   }
 }
 

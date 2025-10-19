@@ -14,19 +14,32 @@
           
           <form @submit.prevent="updateProfile" class="space-y-6">
             <div class="flex items-center space-x-6">
-              <div class="flex-shrink-0">
+              <div class="flex-shrink-0 relative">
                 <img
                   :src="user?.avatar || defaultAvatar"
                   :alt="user?.name"
-                  class="h-20 w-20 rounded-full"
+                  class="h-20 w-20 rounded-full object-cover"
                 />
+                <div v-if="isUploading" class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                  <div class="loading-spinner"></div>
+                </div>
               </div>
               <div>
+                <input
+                  ref="avatarInput"
+                  type="file"
+                  accept="image/*"
+                  @change="handleAvatarUpload"
+                  class="hidden"
+                />
                 <button
                   type="button"
-                  class="btn-outline btn-sm"
+                  @click="$refs.avatarInput.click()"
+                  :disabled="isUploading"
+                  class="btn-outline btn-sm disabled:opacity-50"
                 >
-                  Change Avatar
+                  <div v-if="isUploading" class="loading-spinner mr-2"></div>
+                  {{ isUploading ? 'Uploading...' : 'Change Avatar' }}
                 </button>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   JPG, PNG or GIF. Max size 2MB.
@@ -135,6 +148,8 @@ export default {
       avatar: ''
     })
 
+    const isUploading = ref(false)
+
     const user = computed(() => store.getters['auth/user'])
     const isLoading = computed(() => store.getters['auth/isLoading'])
 
@@ -150,6 +165,47 @@ export default {
         await store.dispatch('auth/updateProfile', form.value)
       } catch (error) {
         console.error('Profile update error:', error)
+      }
+    }
+
+    const handleAvatarUpload = async (event) => {
+      const file = event.target.files[0]
+      if (!file) return
+
+      // Validate file size (2MB max)
+      if (file.size > 2 * 1024 * 1024) {
+        alert('File size must be less than 2MB')
+        return
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file')
+        return
+      }
+
+      isUploading.value = true
+
+      try {
+        // Simulate avatar upload (in demo mode)
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        
+        // Create a preview URL
+        const avatarUrl = URL.createObjectURL(file)
+        
+        // Update the form with the new avatar
+        form.value.avatar = avatarUrl
+        
+        // Update the user profile
+        await store.dispatch('auth/updateProfile', { avatar: avatarUrl })
+        
+        // Clear the file input
+        event.target.value = ''
+      } catch (error) {
+        console.error('Avatar upload error:', error)
+        alert('Failed to upload avatar. Please try again.')
+      } finally {
+        isUploading.value = false
       }
     }
 
@@ -192,11 +248,13 @@ export default {
 
     return {
       form,
+      isUploading,
       user,
       isLoading,
       defaultAvatar,
       stats,
       updateProfile,
+      handleAvatarUpload,
       changePassword,
       exportData,
       deleteAccount,
