@@ -1,17 +1,16 @@
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
 import store from '../store'
-import { mockApi } from './mockApi'
 
 const toast = useToast()
 
 // Determine API URL based on environment
 const getApiUrl = () => {
   if (process.env.NODE_ENV === 'production') {
-    // In production, use the current Vercel deployment URL
-    return 'https://task-managment-1kk6px26h-iansia.vercel.app'
+    // In production, use the Vercel deployment URL with /api prefix
+    return process.env.VUE_APP_API_URL || 'https://task-managment-488ma0643-iansia.vercel.app/api'
   }
-  return process.env.VUE_APP_API_URL || 'http://localhost:3000'
+  return process.env.VUE_APP_API_URL || 'http://localhost:3000/api'
 }
 
 // Create axios instance
@@ -42,67 +41,8 @@ api.interceptors.response.use(
   (response) => {
     return response
   },
-  async (error) => {
-    const { response, config } = error
-    
-    // If it's a network error, try to use mock API
-    if (!response && error.request) {
-      console.log('Network error detected, falling back to mock API');
-      
-      // Try to use mock API for common endpoints
-      try {
-        const url = config.url;
-        const method = config.method;
-        
-        if (url.includes('/auth/login') && method === 'post') {
-          const mockResponse = await mockApi.login(config.data);
-          return { data: mockResponse };
-        }
-        
-        if (url.includes('/tasks') && method === 'get') {
-          const mockResponse = await mockApi.getTasks();
-          return { data: mockResponse };
-        }
-        
-        if (url.includes('/projects') && method === 'get') {
-          const mockResponse = await mockApi.getProjects();
-          return { data: mockResponse };
-        }
-        
-        if (url.includes('/users') && method === 'get') {
-          const mockResponse = await mockApi.getUsers();
-          return { data: mockResponse };
-        }
-        
-        if (url.includes('/tasks') && method === 'post') {
-          const mockResponse = await mockApi.createTask(config.data);
-          return { data: mockResponse };
-        }
-        
-        if (url.includes('/tasks/') && method === 'put') {
-          const taskId = url.split('/').pop();
-          const mockResponse = await mockApi.updateTask(parseInt(taskId), config.data);
-          return { data: mockResponse };
-        }
-        
-        if (url.includes('/tasks/') && method === 'delete') {
-          const taskId = url.split('/').pop();
-          const mockResponse = await mockApi.deleteTask(parseInt(taskId));
-          return { data: mockResponse };
-        }
-        
-        if (url.includes('/projects') && method === 'post') {
-          const mockResponse = await mockApi.createProject(config.data);
-          return { data: mockResponse };
-        }
-        
-      } catch (mockError) {
-        console.error('Mock API also failed:', mockError);
-      }
-      
-      // Show a more helpful message
-      toast.error('Network error. Using demo mode with sample data.');
-    }
+  (error) => {
+    const { response } = error
     
     if (response) {
       const { status, data } = response
@@ -154,6 +94,9 @@ api.interceptors.response.use(
             toast.error('An unexpected error occurred')
           }
       }
+    } else if (error.request) {
+      // Network error
+      toast.error('Network error. Please check your connection.')
     } else {
       // Other error
       toast.error('An unexpected error occurred')
