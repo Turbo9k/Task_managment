@@ -1,9 +1,18 @@
 // Script to create a user with properly hashed password
 // Run this with: node server/create-user-proper.js
 
-// Set Neon connection string BEFORE loading database config
-process.env.DATABASE_URL = 'postgresql://neondb_owner:npg_S3UyGDtEiwp6@ep-quiet-glade-adtl40ds-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require';
-process.env.NODE_ENV = 'production';
+// IMPORTANT: Set your Neon connection string in .env file or environment variables
+// DO NOT hardcode credentials here!
+// This script will use DATABASE_URL or DB_* variables from your .env file
+// Make sure your .env file contains:
+// DATABASE_URL=postgresql://username:password@hostname/database?sslmode=require
+// OR
+// DB_HOST=your-host.neon.tech
+// DB_USER=your-user
+// DB_PASSWORD=your-password
+// DB_NAME=your-database
+require('dotenv').config();
+process.env.NODE_ENV = process.env.NODE_ENV || 'production';
 
 const { pool } = require('./config/database');
 const bcrypt = require('bcryptjs');

@@ -13,7 +13,7 @@ Neon provides a connection string that includes the correct database name.
    - Click "Connection Details"
    - Copy the connection string (it looks like):
      ```
-     postgresql://neondb_owner:password@ep-quiet-glade-adtl40ds-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require
+     postgresql://username:password@hostname/database?sslmode=require
      ```
 
 2. **Add to Vercel:**
@@ -29,10 +29,10 @@ Neon provides a connection string that includes the correct database name.
 Since your connection string uses `neondb`, set these in Vercel:
 
 1. **In Vercel Environment Variables:**
-   - `DB_NAME=neondb` ⚠️ (change from `task_management` to `neondb`)
-   - `DB_HOST=ep-quiet-glade-adtl40ds-pooler.c-2.us-east-1.aws.neon.tech`
-   - `DB_USER=neondb_owner`
-   - `DB_PASSWORD=npg_S3UyGDtEiwp6`
+   - `DB_NAME=your-database-name` ⚠️ (use your actual database name)
+   - `DB_HOST=your-host.neon.tech`
+   - `DB_USER=your-database-user`
+   - `DB_PASSWORD=your-database-password`
    - `DB_PORT=5432` (optional)
 
 2. **Remove `DATABASE_URL` if it exists** (so it uses individual parameters)
@@ -40,10 +40,11 @@ Since your connection string uses `neondb`, set these in Vercel:
 ### Option 3: Use DATABASE_URL (Alternative)
 If you prefer using `DATABASE_URL`:
 
-1. **Your connection string is:**
+1. **Your connection string format:**
    ```
-   postgresql://neondb_owner:npg_S3UyGDtEiwp6@ep-quiet-glade-adtl40ds-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require
+   postgresql://username:password@hostname/database?sslmode=require
    ```
+   (Replace with your actual credentials from Neon Dashboard)
 
 2. **Add to Vercel:**
    - Name: `DATABASE_URL`

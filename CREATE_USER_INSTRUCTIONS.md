@@ -6,14 +6,14 @@ The password hash in the SQL file might not be correct. Here's how to create a u
 
 1. **Make sure your `.env` file has the correct Neon database credentials:**
    ```env
-   DATABASE_URL=postgresql://neondb_owner:npg_S3UyGDtEiwp6@ep-quiet-glade-adtl40ds-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require
+   DATABASE_URL=postgresql://username:password@hostname/database?sslmode=require
    ```
    OR
    ```env
-   DB_HOST=ep-quiet-glade-adtl40ds-pooler.c-2.us-east-1.aws.neon.tech
-   DB_USER=neondb_owner
-   DB_PASSWORD=npg_S3UyGDtEiwp6
-   DB_NAME=neondb
+   DB_HOST=your-neon-host.neon.tech
+   DB_USER=your-database-user
+   DB_PASSWORD=your-database-password
+   DB_NAME=your-database-name
    NODE_ENV=production
    ```
 
