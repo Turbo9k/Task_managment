@@ -152,7 +152,7 @@
           <div class="mt-6 grid grid-cols-2 gap-3">
             <button
               type="button"
-              @click.prevent="handleSocialLogin('google')"
+              @click.stop="handleSocialLogin('google')"
               :disabled="isLoading"
               class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
             >
@@ -167,7 +167,7 @@
 
             <button
               type="button"
-              @click.prevent="handleSocialLogin('github')"
+              @click.stop="handleSocialLogin('github')"
               :disabled="isLoading"
               class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
             >
@@ -228,8 +228,11 @@ export default {
     }
 
     const handleSocialLogin = (provider) => {
+      console.log('=== OAuth Button Clicked ===')
+      console.log('Provider:', provider)
+      console.log('Function called at:', new Date().toISOString())
+      
       try {
-        console.log('OAuth button clicked for:', provider)
         // Determine the correct OAuth URL based on environment
         let authUrl = '/api/auth/' + provider
         
@@ -242,20 +245,21 @@ export default {
                              hostname.startsWith('172.')
           
           if (isLocalhost) {
-            // Localhost - use full URL to API server
             const apiUrl = process.env.VUE_APP_API_URL || 'http://localhost:3000/api'
             authUrl = `${apiUrl}/auth/${provider}`
           } else {
-            // Production - use relative path (Vercel routes /api/* to serverless function)
             authUrl = `/api/auth/${provider}`
           }
         }
         
-        console.log('Redirecting to OAuth:', authUrl)
+        console.log('Redirecting to:', authUrl)
+        console.log('Full URL:', window.location.origin + authUrl)
+        
+        // Immediate redirect
         window.location.href = authUrl
       } catch (error) {
         console.error('OAuth error:', error)
-        alert('Failed to initiate OAuth login. Please try again.')
+        alert('OAuth failed: ' + error.message)
       }
     }
 
