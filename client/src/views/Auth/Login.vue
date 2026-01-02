@@ -182,36 +182,52 @@ export default {
     const handleSocialLogin = (provider) => {
       console.log('=== OAuth Button Clicked ===')
       console.log('Provider:', provider)
-      console.log('Function called at:', new Date().toISOString())
       
-      try {
-        // Determine the correct OAuth URL based on environment
-        let authUrl = '/api/auth/' + provider
+      // Determine the correct OAuth URL based on environment
+      let authUrl = '/api/auth/' + provider
+      
+      if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname
+        const isLocalhost = hostname === 'localhost' || 
+                           hostname === '127.0.0.1' ||
+                           hostname.startsWith('192.168.') ||
+                           hostname.startsWith('10.') ||
+                           hostname.startsWith('172.')
         
-        if (typeof window !== 'undefined') {
-          const hostname = window.location.hostname
-          const isLocalhost = hostname === 'localhost' || 
-                             hostname === '127.0.0.1' ||
-                             hostname.startsWith('192.168.') ||
-                             hostname.startsWith('10.') ||
-                             hostname.startsWith('172.')
-          
-          if (isLocalhost) {
-            const apiUrl = process.env.VUE_APP_API_URL || 'http://localhost:3000/api'
-            authUrl = `${apiUrl}/auth/${provider}`
-          } else {
-            authUrl = `/api/auth/${provider}`
+        if (isLocalhost) {
+          const apiUrl = process.env.VUE_APP_API_URL || 'http://localhost:3000/api'
+          authUrl = `${apiUrl}/auth/${provider}`
+        } else {
+          authUrl = `/api/auth/${provider}`
+        }
+      }
+      
+      const fullUrl = window.location.origin + authUrl
+      console.log('Redirecting to:', authUrl)
+      console.log('Full URL:', fullUrl)
+      
+      // Use multiple methods to ensure redirect works
+      try {
+        // Method 1: Try window.location.replace first (most reliable)
+        window.location.replace(fullUrl)
+      } catch (e1) {
+        try {
+          // Method 2: Fallback to window.location.href
+          window.location.href = fullUrl
+        } catch (e2) {
+          try {
+            // Method 3: Last resort - create a link and click it
+            const link = document.createElement('a')
+            link.href = fullUrl
+            link.target = '_self'
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+          } catch (e3) {
+            console.error('All redirect methods failed:', { e1, e2, e3 })
+            alert('Failed to redirect. Please try clicking the button again.')
           }
         }
-        
-        console.log('Redirecting to:', authUrl)
-        console.log('Full URL:', window.location.origin + authUrl)
-        
-        // Immediate redirect
-        window.location.href = authUrl
-      } catch (error) {
-        console.error('OAuth error:', error)
-        alert('OAuth failed: ' + error.message)
       }
     }
 
