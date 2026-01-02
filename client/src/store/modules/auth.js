@@ -154,14 +154,16 @@ const actions = {
     }
   },
 
-  async socialLogin({ commit }, { provider, token }) {
+  async socialLogin({ commit, state }, { provider, token }) {
     commit('SET_LOADING', true)
     
     try {
-      console.log('socialLogin action called with token:', token ? 'Present' : 'Missing')
+      console.log('=== socialLogin action ===')
+      console.log('Token present:', !!token)
       
       // Set token first
       commit('SET_TOKEN', token)
+      console.log('Token set in store')
       
       // Verify the token with backend
       console.log('Calling /auth/me to verify token...')
@@ -174,9 +176,20 @@ const actions = {
       if (response.data && response.data.user) {
         commit('SET_USER', response.data.user)
         console.log('User set in store:', response.data.user.email)
+        console.log('Auth state:', { 
+          isAuthenticated: state.isAuthenticated, 
+          hasUser: !!state.user, 
+          hasToken: !!state.token 
+        })
+        
+        // Double-check state is set
+        if (!state.isAuthenticated) {
+          console.warn('isAuthenticated not set, forcing update')
+          commit('SET_USER', response.data.user)
+        }
         
         toast.success(`Welcome! Signed in with ${provider}`)
-        return { success: true }
+        return { success: true, user: response.data.user }
       } else {
         console.error('No user data in response')
         throw new Error('No user data received')

@@ -101,8 +101,17 @@ router.beforeEach(async (to, from, next) => {
   const hasToken = store.getters['auth/token']
   const hasUser = store.getters['auth/user']
 
-  // If we just logged in (coming from login page with user set), trust the login
-  if (from.path === '/login' && hasUser && hasToken) {
+  console.log('Router guard:', { to: to.path, from: from.path, isAuthenticated, hasToken, hasUser, isLoading })
+
+  // Allow callback route to proceed without checks (it handles auth itself)
+  if (to.path === '/auth/callback') {
+    console.log('Allowing callback route')
+    next()
+    return
+  }
+
+  // If we just logged in (coming from login or callback page with user set), trust the login
+  if ((from.path === '/login' || from.path === '/auth/callback') && hasUser && hasToken) {
     console.log('Just logged in, skipping auth check')
     next()
     return
@@ -116,8 +125,8 @@ router.beforeEach(async (to, from, next) => {
     return
   }
 
-  // If we have a token but no user, check auth (but only if not coming from login)
-  if (hasToken && !hasUser && !isAuthenticated && to.meta.requiresAuth && from.path !== '/login') {
+  // If we have a token but no user, check auth (but only if not coming from login/callback)
+  if (hasToken && !hasUser && !isAuthenticated && to.meta.requiresAuth && from.path !== '/login' && from.path !== '/auth/callback') {
     console.log('Has token but no user, checking auth...')
     await store.dispatch('auth/checkAuth')
   }
@@ -145,8 +154,8 @@ router.beforeEach(async (to, from, next) => {
     return
   }
 
-  // Redirect authenticated users away from auth pages
-  if (to.meta.hideForAuth && finalAuthState) {
+  // Redirect authenticated users away from auth pages (but not callback)
+  if (to.meta.hideForAuth && finalAuthState && to.path !== '/auth/callback') {
     next('/dashboard')
     return
   }
