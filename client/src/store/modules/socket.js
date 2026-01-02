@@ -70,7 +70,14 @@ const actions = {
     }
 
     try {
-      const socket = io(process.env.VUE_APP_API_URL || 'http://localhost:3000', {
+      // Determine socket URL - use same logic as API
+      const isLocalhost = typeof window !== 'undefined' && 
+                         (window.location.hostname === 'localhost' || 
+                          window.location.hostname === '127.0.0.1');
+      const socketUrl = process.env.VUE_APP_SOCKET_URL || 
+                       (isLocalhost ? 'http://localhost:3000' : window.location.origin);
+      
+      const socket = io(socketUrl, {
         auth: { token },
         transports: ['websocket', 'polling']
       })

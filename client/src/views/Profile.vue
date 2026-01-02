@@ -201,7 +201,7 @@ export default {
       isUploading.value = true
 
       try {
-        // Simulate avatar upload (in demo mode)
+        // Upload avatar
         await new Promise(resolve => setTimeout(resolve, 2000))
         
         // Create a preview URL

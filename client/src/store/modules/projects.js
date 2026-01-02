@@ -42,7 +42,11 @@ const mutations = {
   },
   ADD_MEMBER(state, member) {
     if (state.currentProject && state.currentProject.members) {
-      state.currentProject.members.push(member)
+      // Check if member already exists
+      const exists = state.currentProject.members.find(m => m.id === member.id)
+      if (!exists) {
+        state.currentProject.members.push(member)
+      }
     }
   },
   REMOVE_MEMBER(state, userId) {

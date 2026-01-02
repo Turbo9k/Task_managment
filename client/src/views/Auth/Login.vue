@@ -146,17 +146,6 @@
           </div>
         </div>
 
-        <!-- Demo Account Info -->
-        <div class="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-          <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">Demo Account</h3>
-          <p class="text-xs text-blue-600 dark:text-blue-300 mb-2">
-            Use these credentials to explore the app:
-          </p>
-          <div class="text-xs text-blue-600 dark:text-blue-300 space-y-1">
-            <div><strong>Email:</strong> admin@demo.com</div>
-            <div><strong>Password:</strong> password123</div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -189,8 +178,34 @@ export default {
     }
 
     const handleSocialLogin = (provider) => {
-      const baseUrl = process.env.VUE_APP_API_URL || 'http://localhost:3000'
-      window.location.href = `${baseUrl}/api/auth/${provider}`
+      // Determine the correct base URL based on environment
+      let baseUrl = '/api'
+      
+      if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname
+        const isLocalhost = hostname === 'localhost' || 
+                           hostname === '127.0.0.1' ||
+                           hostname.startsWith('192.168.') ||
+                           hostname.startsWith('10.') ||
+                           hostname.startsWith('172.')
+        
+        if (isLocalhost) {
+          // Localhost - use full URL
+          baseUrl = process.env.VUE_APP_API_URL || 'http://localhost:3000/api'
+        } else {
+          // Production - use relative path
+          baseUrl = '/api'
+        }
+      }
+      
+      // Remove /api if it's already in the baseUrl
+      if (baseUrl.endsWith('/api')) {
+        baseUrl = baseUrl.replace(/\/api$/, '')
+      }
+      
+      const authUrl = `${baseUrl}/api/auth/${provider}`
+      console.log('Redirecting to OAuth:', authUrl)
+      window.location.href = authUrl
     }
 
     return {

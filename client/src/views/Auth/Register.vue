@@ -226,8 +226,34 @@ export default {
     }
 
     const handleSocialLogin = (provider) => {
-      const baseUrl = process.env.VUE_APP_API_URL || 'http://localhost:3000'
-      window.location.href = `${baseUrl}/api/auth/${provider}`
+      // Determine the correct base URL based on environment
+      let baseUrl = '/api'
+      
+      if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname
+        const isLocalhost = hostname === 'localhost' || 
+                           hostname === '127.0.0.1' ||
+                           hostname.startsWith('192.168.') ||
+                           hostname.startsWith('10.') ||
+                           hostname.startsWith('172.')
+        
+        if (isLocalhost) {
+          // Localhost - use full URL
+          baseUrl = process.env.VUE_APP_API_URL || 'http://localhost:3000/api'
+        } else {
+          // Production - use relative path
+          baseUrl = '/api'
+        }
+      }
+      
+      // Remove /api if it's already in the baseUrl
+      if (baseUrl.endsWith('/api')) {
+        baseUrl = baseUrl.replace(/\/api$/, '')
+      }
+      
+      const authUrl = `${baseUrl}/api/auth/${provider}`
+      console.log('Redirecting to OAuth:', authUrl)
+      window.location.href = authUrl
     }
 
     return {

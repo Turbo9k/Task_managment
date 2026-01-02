@@ -58,6 +58,15 @@
           <!-- Actions -->
           <div class="flex justify-end space-x-3 pt-4">
             <button
+              v-if="isEditing"
+              type="button"
+              @click="handleDelete"
+              :disabled="isLoading"
+              class="btn-outline text-red-600 hover:text-red-700 border-red-300 hover:border-red-400"
+            >
+              Delete
+            </button>
+            <button
               type="button"
               @click="closeModal"
               class="btn-outline"
@@ -140,6 +149,21 @@ export default {
         closeModal()
       } catch (error) {
         console.error('Project save error:', error)
+        alert(error.response?.data?.error || 'Failed to save project')
+      }
+    }
+
+    const handleDelete = async () => {
+      if (!confirm(`Are you sure you want to delete "${modalData.value.name}"? This action cannot be undone.`)) {
+        return
+      }
+      
+      try {
+        await store.dispatch('projects/deleteProject', modalData.value.id)
+        closeModal()
+      } catch (error) {
+        console.error('Project delete error:', error)
+        alert(error.response?.data?.error || 'Failed to delete project')
       }
     }
 
@@ -155,7 +179,8 @@ export default {
       isLoading,
       isEditing,
       closeModal,
-      handleSubmit
+      handleSubmit,
+      handleDelete
     }
   }
 }

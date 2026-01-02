@@ -116,6 +116,51 @@ const actions = {
     } finally {
       commit('SET_LOADING', false)
     }
+  },
+
+  async fetchUserStats({ commit }) {
+    commit('SET_LOADING', true)
+    commit('SET_ERROR', null)
+    
+    try {
+      const response = await api.get('/users/stats')
+      return response.data
+    } catch (error) {
+      // If endpoint doesn't exist, return default stats
+      if (error.response?.status === 404) {
+        return {
+          totalTasks: 0,
+          completedTasks: 0,
+          inProgressTasks: 0,
+          projectsCount: 0
+        }
+      }
+      const message = error.response?.data?.error || 'Failed to fetch user stats'
+      commit('SET_ERROR', message)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  async fetchUserActivity({ commit }) {
+    commit('SET_LOADING', true)
+    commit('SET_ERROR', null)
+    
+    try {
+      const response = await api.get('/users/activity')
+      return response.data
+    } catch (error) {
+      // If endpoint doesn't exist, return empty array
+      if (error.response?.status === 404) {
+        return []
+      }
+      const message = error.response?.data?.error || 'Failed to fetch user activity'
+      commit('SET_ERROR', message)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
   }
 }
 

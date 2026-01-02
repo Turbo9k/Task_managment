@@ -64,19 +64,16 @@ NODE_ENV=production
 - [ ] Check deployment logs for errors
 - [ ] Visit your live app URL
 
-## ✅ Step 8: Seed Demo Data
-After deployment, you can seed demo data by:
-1. Going to your app URL
-2. Registering a new account
-3. Or running the seed script (if you add an endpoint)
+## ✅ Step 8: Create Your First Account
+After deployment:
+1. Go to your app URL: `https://your-app-name.vercel.app`
+2. Click "Register" to create your account
+3. Start creating projects and tasks!
 
 ## 🎉 Success!
 Your app should be live at: `https://your-app-name.vercel.app`
 
-## Demo Accounts (if you seed data)
-- admin@demo.com / password123
-- john@demo.com / password123
-- jane@demo.com / password123
+**Note:** For development/testing, you can optionally run the seed script locally to populate sample data.
 
 ## Troubleshooting
 

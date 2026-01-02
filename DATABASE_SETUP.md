@@ -85,7 +85,7 @@
    cd client && npm install
    ```
 
-2. **Seed Demo Data:**
+2. **Seed Sample Data (Optional - for development only):**
    ```bash
    npm run seed
    ```
@@ -113,9 +113,9 @@
 - Change PORT in .env file
 - Or stop other services using port 3000
 
-## Demo Data
+## Sample Data (Development Only)
 
-The application comes with pre-seeded demo data:
+The seed script creates sample data for development/testing:
 
 | Email | Password | Role |
 |-------|----------|------|

@@ -274,15 +274,28 @@ export default {
         await store.dispatch('projects/fetchProjects')
         
         // Load user stats
-        const response = await store.dispatch('users/fetchUserStats')
-        if (response) {
-          stats.value = response
+        try {
+          const response = await store.dispatch('users/fetchUserStats')
+          if (response) {
+            stats.value = {
+              totalTasks: response.total_tasks || response.totalTasks || 0,
+              completedTasks: response.completed_tasks || response.completedTasks || 0,
+              inProgressTasks: response.assigned_tasks || response.inProgressTasks || 0,
+              projectsCount: response.projects_count || response.projectsCount || 0
+            }
+          }
+        } catch (error) {
+          console.error('Failed to load user stats:', error)
         }
 
         // Load recent activity
-        const activityResponse = await store.dispatch('users/fetchUserActivity')
-        if (activityResponse) {
-          activity.value = activityResponse
+        try {
+          const activityResponse = await store.dispatch('users/fetchUserActivity')
+          if (activityResponse) {
+            activity.value = activityResponse
+          }
+        } catch (error) {
+          console.error('Failed to load user activity:', error)
         }
       } catch (error) {
         console.error('Failed to load dashboard data:', error)

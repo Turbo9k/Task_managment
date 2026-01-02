@@ -143,7 +143,7 @@ A modern, vibrant task management application built with Vue.js 3, Express.js, a
 ## 🎯 **Usage**
 
 ### Getting Started
-1. **Register/Login**: Create an account or use demo credentials
+1. **Register/Login**: Create your account to get started
 2. **Choose Role**: Select your role (Admin, Manager, Developer)
 3. **Create Projects**: Set up your first project
 4. **Add Tasks**: Create and assign tasks to team members

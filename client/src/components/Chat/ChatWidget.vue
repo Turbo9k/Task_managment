@@ -172,7 +172,7 @@ export default {
           {
             id: 2,
             content: 'Hey team! How is everyone doing?',
-            senderId: 'demo-user-1',
+            senderId: 'user-1',
             senderName: 'Sarah Johnson',
             senderAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
             timestamp: new Date(Date.now() - 240000) // 4 minutes ago
@@ -180,7 +180,7 @@ export default {
           {
             id: 3,
             content: 'Great! Just finished the user authentication module 🎉',
-            senderId: 'demo-user-2',
+            senderId: 'user-2',
             senderName: 'Mike Chen',
             senderAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
             timestamp: new Date(Date.now() - 180000) // 3 minutes ago
@@ -188,7 +188,7 @@ export default {
           {
             id: 4,
             content: 'Awesome work Mike! The UI looks fantastic',
-            senderId: 'demo-user-3',
+            senderId: 'user-3',
             senderName: 'Emily Davis',
             senderAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
             timestamp: new Date(Date.now() - 120000) // 2 minutes ago
@@ -196,7 +196,7 @@ export default {
           {
             id: 5,
             content: 'Thanks! Ready for the next sprint planning?',
-            senderId: 'demo-user-2',
+            senderId: 'user-2',
             senderName: 'Mike Chen',
             senderAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
             timestamp: new Date(Date.now() - 60000) // 1 minute ago
@@ -217,8 +217,8 @@ export default {
       const message = {
         id: Date.now(),
         content: newMessage.value,
-        senderId: currentUser.value?.id || 'demo-user',
-        senderName: currentUser.value?.name || 'Demo User',
+            senderId: currentUser.value?.id || 'guest',
+            senderName: currentUser.value?.name || 'Guest User',
         senderAvatar: currentUser.value?.avatar || defaultAvatar,
         timestamp: new Date()
       }

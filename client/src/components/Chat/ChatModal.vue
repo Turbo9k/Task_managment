@@ -235,8 +235,8 @@ export default {
           {
             id: 2,
             content: 'I think we should focus on the core functionality first.',
-            senderId: 'demo-user',
-            senderName: 'Demo User',
+            senderId: 'user',
+            senderName: 'User',
             senderAvatar: defaultAvatar,
             timestamp: new Date(Date.now() - 180000)
           },
@@ -261,8 +261,8 @@ export default {
     const loadOnlineMembers = () => {
       onlineMembers.value = [
         {
-          id: 'demo-user',
-          name: 'Demo User',
+          id: 'user',
+          name: 'User',
           avatar: defaultAvatar,
           role: 'Admin'
         },
@@ -288,8 +288,8 @@ export default {
       const message = {
         id: Date.now(),
         content: newMessage.value,
-        senderId: currentUser.value?.id || 'demo-user',
-        senderName: currentUser.value?.name || 'Demo User',
+        senderId: currentUser.value?.id || 'user',
+        senderName: currentUser.value?.name || 'User',
         senderAvatar: currentUser.value?.avatar || defaultAvatar,
         timestamp: new Date()
       }

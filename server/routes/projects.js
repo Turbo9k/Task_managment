@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { pool } = require('../config/database');
 const { requireRole } = require('../middleware/auth');
+const { requireProjectMember, requireProjectRole } = require('../middleware/projectAuth');
 
 const router = express.Router();
 
@@ -29,12 +30,12 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get single project with details
-router.get('/:id', async (req, res) => {
+// Get single project with details - requires project membership
+router.get('/:id', requireProjectMember, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Get project details
+    // Get project details (user is already verified as member by middleware)
     const [projects] = await pool.execute(`
       SELECT 
         p.*,
@@ -45,7 +46,8 @@ router.get('/:id', async (req, res) => {
     `, [id, req.user.id]);
 
     if (projects.length === 0) {
-      return res.status(404).json({ error: 'Project not found' });
+      // This shouldn't happen if middleware works correctly, but safety check
+      return res.status(403).json({ error: 'Access denied: Project not found or you are not a member' });
     }
 
     const project = projects[0];
@@ -68,7 +70,7 @@ router.get('/:id', async (req, res) => {
         COUNT(CASE WHEN status = 'in_progress' THEN 1 END) as in_progress_tasks,
         COUNT(CASE WHEN status = 'review' THEN 1 END) as review_tasks,
         COUNT(CASE WHEN status = 'done' THEN 1 END) as done_tasks,
-        COUNT(CASE WHEN due_date < NOW() AND status != 'done' THEN 1 END) as overdue_tasks
+        COUNT(CASE WHEN due_date < CURRENT_TIMESTAMP AND status != 'done' THEN 1 END) as overdue_tasks
       FROM tasks
       WHERE project_id = ?
     `, [id]);
@@ -129,15 +131,16 @@ router.post('/', [
 
     const [result] = await pool.execute(`
       INSERT INTO projects (name, description, color, created_by, created_at)
-      VALUES (?, ?, ?, ?, NOW())
+      VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+      RETURNING id
     `, [name, description, color || '#3B82F6', req.user.id]);
 
-    const projectId = result.insertId;
+    const projectId = result[0].id;
 
     // Add creator as admin
     await pool.execute(`
       INSERT INTO project_users (project_id, user_id, role, joined_at)
-      VALUES (?, ?, 'admin', NOW())
+      VALUES (?, ?, 'admin', CURRENT_TIMESTAMP)
     `, [projectId, req.user.id]);
 
     // Get created project
@@ -156,12 +159,12 @@ router.post('/', [
   }
 });
 
-// Update project
-router.put('/:id', [
+// Update project - requires admin role
+router.put('/:id', requireProjectMember, requireProjectRole(['admin']), [
   body('name').optional().trim().isLength({ min: 1 }),
   body('description').optional().trim(),
   body('color').optional().isHexColor()
-], requireRole(['admin']), async (req, res) => {
+], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -188,7 +191,7 @@ router.put('/:id', [
 
     await pool.execute(`
       UPDATE projects 
-      SET ${updateFields.join(', ')}, updated_at = NOW()
+      SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `, values);
 
@@ -216,11 +219,11 @@ router.put('/:id', [
   }
 });
 
-// Add member to project
-router.post('/:id/members', [
+// Add member to project - requires admin role
+router.post('/:id/members', requireProjectMember, requireProjectRole(['admin']), [
   body('email').isEmail().normalizeEmail(),
   body('role').isIn(['admin', 'member', 'viewer'])
-], requireRole(['admin']), async (req, res) => {
+], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -255,7 +258,7 @@ router.post('/:id/members', [
     // Add user to project
     await pool.execute(`
       INSERT INTO project_users (project_id, user_id, role, joined_at)
-      VALUES (?, ?, ?, NOW())
+      VALUES (?, ?, ?, CURRENT_TIMESTAMP)
     `, [id, user.id, role]);
 
     // Emit real-time update
@@ -276,8 +279,8 @@ router.post('/:id/members', [
   }
 });
 
-// Remove member from project
-router.delete('/:id/members/:userId', requireRole(['admin']), async (req, res) => {
+// Remove member from project - requires admin role
+router.delete('/:id/members/:userId', requireProjectMember, requireProjectRole(['admin']), async (req, res) => {
   try {
     const { id, userId } = req.params;
 
@@ -306,8 +309,8 @@ router.delete('/:id/members/:userId', requireRole(['admin']), async (req, res) =
   }
 });
 
-// Delete project
-router.delete('/:id', requireRole(['admin']), async (req, res) => {
+// Delete project - requires admin role
+router.delete('/:id', requireProjectMember, requireProjectRole(['admin']), async (req, res) => {
   try {
     const { id } = req.params;
 

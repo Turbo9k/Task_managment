@@ -138,13 +138,14 @@ router.post('/', [
       INSERT INTO tasks (
         title, description, project_id, assignee_id, priority, 
         status, due_date, parent_task_id, created_by, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      RETURNING id
     `, [
       title, description, project_id, assignee_id, priority,
       status, due_date || null, parent_task_id || null, req.user.id
     ]);
 
-    const taskId = result.insertId;
+    const taskId = result[0].id;
 
     // Get the created task with user details
     const [tasks] = await pool.execute(`
@@ -204,7 +205,7 @@ router.put('/:id', [
 
     await pool.execute(`
       UPDATE tasks 
-      SET ${updateFields.join(', ')}, updated_at = NOW()
+      SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `, values);
 
@@ -271,11 +272,12 @@ router.post('/:id/attachments', upload.single('file'), async (req, res) => {
 
     const { originalname, mimetype, size, buffer } = req.file;
     
-    // In a real application, you'd save the file to cloud storage
-    // For demo purposes, we'll just store the metadata
+    // Save file metadata to database
+    // In production, files should be stored in cloud storage (S3, Cloudinary, etc.)
     const [result] = await pool.execute(`
       INSERT INTO task_attachments (task_id, user_id, filename, original_name, file_path, file_size, mime_type, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+      VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      RETURNING id
     `, [
       id, 
       req.user.id, 
@@ -286,7 +288,7 @@ router.post('/:id/attachments', upload.single('file'), async (req, res) => {
       mimetype
     ]);
 
-    const attachmentId = result.insertId;
+    const attachmentId = result[0].id;
 
     // Get task project for real-time update
     const [tasks] = await pool.execute('SELECT project_id FROM tasks WHERE id = ?', [id]);
@@ -332,10 +334,11 @@ router.post('/:id/comments', [
 
     const [result] = await pool.execute(`
       INSERT INTO task_comments (task_id, user_id, content, created_at)
-      VALUES (?, ?, ?, NOW())
+      VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+      RETURNING id
     `, [id, req.user.id, content]);
 
-    const commentId = result.insertId;
+    const commentId = result[0].id;
 
     // Get comment with user details
     const [comments] = await pool.execute(`

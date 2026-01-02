@@ -192,8 +192,9 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useStore } from 'vuex'
+import api from '../services/api'
 import { BarChart3, CheckSquare, TrendingUp, Clock, Target, RefreshCw } from 'lucide-vue-next'
 
 export default {
@@ -213,49 +214,54 @@ export default {
     const isLoading = ref(false)
 
     const metrics = ref({
-      tasksCompleted: 47,
-      productivityScore: 87,
-      avgTaskTime: 2.3,
-      goalAchievement: 92
+      tasksCompleted: 0,
+      productivityScore: 0,
+      avgTaskTime: 0,
+      goalAchievement: 0
     })
 
-    const projectProgress = ref([
-      { id: 1, name: 'Website Redesign', progress: 75 },
-      { id: 2, name: 'Mobile App', progress: 45 },
-      { id: 3, name: 'API Integration', progress: 90 },
-      { id: 4, name: 'Database Migration', progress: 30 }
-    ])
-
-    const timeDistribution = ref([
-      { name: 'Development', hours: 32, color: '#3B82F6' },
-      { name: 'Design', hours: 18, color: '#10B981' },
-      { name: 'Testing', hours: 12, color: '#F59E0B' },
-      { name: 'Meetings', hours: 8, color: '#EF4444' },
-      { name: 'Documentation', hours: 6, color: '#8B5CF6' }
-    ])
-
-    const teamPerformance = ref([
-      { id: 1, name: 'Sarah Johnson', avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face', tasks: 23, completion: 95 },
-      { id: 2, name: 'Mike Chen', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face', tasks: 19, completion: 89 },
-      { id: 3, name: 'Emily Davis', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face', tasks: 17, completion: 92 },
-      { id: 4, name: 'Alex Rodriguez', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face', tasks: 15, completion: 87 }
-    ])
-
-    const recentActivity = ref([
-      { id: 1, type: 'task', description: 'Completed "User Authentication" task', time: '2 hours ago' },
-      { id: 2, type: 'project', description: 'Updated "Website Redesign" project status', time: '4 hours ago' },
-      { id: 3, type: 'task', description: 'Started "API Integration" task', time: '6 hours ago' },
-      { id: 4, type: 'project', description: 'Created new "Mobile App" project', time: '1 day ago' },
-      { id: 5, type: 'task', description: 'Completed "Database Schema" task', time: '2 days ago' }
-    ])
+    const projectProgress = ref([])
+    const timeDistribution = ref([])
+    const teamPerformance = ref([])
+    const recentActivity = ref([])
 
     const refreshData = async () => {
       isLoading.value = true
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      isLoading.value = false
-      // In a real app, this would fetch fresh data from the API
+      try {
+        // Fetch user metrics
+        const metricsRes = await api.get(`/analytics/user?period=${selectedPeriod.value}`)
+        metrics.value = metricsRes.data
+
+        // Fetch project progress
+        const projectsRes = await api.get('/analytics/projects')
+        projectProgress.value = projectsRes.data.map(p => ({
+          id: p.id,
+          name: p.name,
+          progress: parseInt(p.progress) || 0
+        }))
+
+        // Fetch time distribution
+        const timeRes = await api.get(`/analytics/time-distribution?period=${selectedPeriod.value}`)
+        timeDistribution.value = timeRes.data
+
+        // Fetch team performance
+        const teamRes = await api.get('/analytics/team')
+        teamPerformance.value = teamRes.data
+
+        // Fetch recent activity
+        const activityRes = await api.get('/analytics/activity?limit=10')
+        recentActivity.value = activityRes.data
+      } catch (error) {
+        console.error('Failed to load analytics:', error)
+      } finally {
+        isLoading.value = false
+      }
     }
+
+    // Watch for period changes
+    watch(selectedPeriod, () => {
+      refreshData()
+    })
 
     onMounted(() => {
       // Load initial analytics data

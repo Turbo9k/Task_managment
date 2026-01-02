@@ -62,7 +62,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useStore } from 'vuex'
 import { X } from 'lucide-vue-next'
 
@@ -82,7 +82,15 @@ export default {
     const isLoading = computed(() => store.getters['projects/isLoading'])
     const modalData = computed(() => store.getters['modals/modalData'])
 
-    const isEditing = computed(() => !!modalData.value)
+    const isEditing = computed(() => !!modalData.value && !modalData.value.projectId)
+    
+    // Watch for modal close to reload project
+    watch(() => store.getters['modals/showUserModal'], (isOpen) => {
+      if (!isOpen && modalData.value?.projectId) {
+        // Modal was closed, reload project if we have a projectId
+        store.dispatch('projects/fetchProject', modalData.value.projectId)
+      }
+    })
 
     const closeModal = () => {
       store.dispatch('modals/hideUserModal')
@@ -98,16 +106,33 @@ export default {
 
     const handleSubmit = async () => {
       try {
+        const projectId = modalData.value?.projectId
+        if (!projectId) {
+          alert('No project ID provided')
+          return
+        }
+
         if (isEditing.value) {
-          // Update user role logic here
+          // Update user role logic here (if needed in future)
           console.log('Update user role:', form.value)
         } else {
-          // Add member to project logic here
-          console.log('Add member:', form.value)
+          // Add member to project
+          await store.dispatch('projects/addMember', {
+            projectId,
+            memberData: {
+              email: form.value.email,
+              role: form.value.role
+            }
+          })
+          // Reload project to get updated member list
+          await store.dispatch('projects/fetchProject', projectId)
         }
         closeModal()
       } catch (error) {
         console.error('User save error:', error)
+        const errorMessage = error.response?.data?.error || 'Failed to add member'
+        alert(errorMessage)
+        throw error
       }
     }
 

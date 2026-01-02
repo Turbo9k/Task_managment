@@ -15,7 +15,7 @@ const initializeSocket = (io) => {
       
       // Verify user exists and is active
       const [users] = await pool.execute(
-        'SELECT id, email, name, avatar FROM users WHERE id = ? AND is_active = 1',
+        'SELECT id, email, name, avatar FROM users WHERE id = ? AND is_active = TRUE',
         [decoded.userId]
       );
 

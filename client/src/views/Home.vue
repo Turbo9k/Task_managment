@@ -187,7 +187,7 @@
             Built with Vue.js, Express.js, and Socket.io for modern teams.
           </p>
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            © 2024 TaskFlow. Built for job interviews and portfolio demonstrations.
+            © 2024 TaskFlow. Professional task management for modern teams.
           </p>
         </div>
       </div>

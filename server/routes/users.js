@@ -9,7 +9,7 @@ router.get('/', async (req, res) => {
   try {
     const { search } = req.query;
     
-    let query = 'SELECT id, name, email, avatar FROM users WHERE is_active = 1';
+    let query = 'SELECT id, name, email, avatar FROM users WHERE is_active = TRUE';
     const params = [];
 
     if (search) {
@@ -30,7 +30,21 @@ router.get('/', async (req, res) => {
 // Update user profile
 router.put('/profile', [
   body('name').optional().trim().isLength({ min: 2 }),
-  body('avatar').optional().isURL()
+  body('avatar').optional().custom((value) => {
+    // Allow URLs, blob URLs, and data URLs
+    if (!value) return true;
+    if (typeof value !== 'string') return false;
+    // Check if it's a valid URL, blob URL, or data URL
+    try {
+      if (value.startsWith('blob:') || value.startsWith('data:')) {
+        return true;
+      }
+      new URL(value);
+      return true;
+    } catch {
+      return false;
+    }
+  }).withMessage('Avatar must be a valid URL, blob URL, or data URL')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -59,13 +73,13 @@ router.put('/profile', [
 
     await pool.execute(`
       UPDATE users 
-      SET ${updateFields.join(', ')}, updated_at = NOW()
+      SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `, values);
 
     // Get updated user
     const [users] = await pool.execute(
-      'SELECT id, email, name, avatar FROM users WHERE id = ?',
+      'SELECT id, email, name, avatar, created_at FROM users WHERE id = ?',
       [req.user.id]
     );
 
@@ -96,7 +110,7 @@ router.get('/activity', async (req, res) => {
       
       SELECT 
         'task_completed' as type,
-        CONCAT('Completed task: ', t.title) as description,
+        ('Completed task: ' || t.title) as description,
         p.name as project_name,
         p.color as project_color,
         t.updated_at as timestamp
@@ -118,22 +132,40 @@ router.get('/activity', async (req, res) => {
 // Get user statistics
 router.get('/stats', async (req, res) => {
   try {
-    const [stats] = await pool.execute(`
+    // Get tasks assigned to user
+    const [assignedTasks] = await pool.execute(`
       SELECT 
-        COUNT(DISTINCT t.id) as total_tasks,
-        COUNT(DISTINCT CASE WHEN t.assignee_id = ? THEN t.id END) as assigned_tasks,
-        COUNT(DISTINCT CASE WHEN t.assignee_id = ? AND t.status = 'done' THEN t.id END) as completed_tasks,
-        COUNT(DISTINCT p.id) as projects_count,
-        COUNT(DISTINCT CASE WHEN pu.role = 'admin' THEN p.id END) as admin_projects
+        COUNT(*) as total_tasks,
+        COUNT(CASE WHEN status = 'done' THEN 1 END) as completed_tasks,
+        COUNT(CASE WHEN status = 'in_progress' THEN 1 END) as in_progress_tasks
       FROM tasks t
-      LEFT JOIN projects p ON t.project_id = p.id
-      LEFT JOIN project_users pu ON p.id = pu.project_id AND pu.user_id = ?
-    `, [req.user.id, req.user.id, req.user.id]);
+      INNER JOIN project_users pu ON t.project_id = pu.project_id
+      WHERE t.assignee_id = ? AND pu.user_id = ?
+    `, [req.user.id, req.user.id]);
 
-    res.json(stats[0]);
+    // Get projects count
+    const [projectsCount] = await pool.execute(`
+      SELECT COUNT(DISTINCT project_id) as projects_count
+      FROM project_users
+      WHERE user_id = ?
+    `, [req.user.id]);
+
+    const stats = {
+      totalTasks: parseInt(assignedTasks[0]?.total_tasks || 0),
+      completedTasks: parseInt(assignedTasks[0]?.completed_tasks || 0),
+      inProgressTasks: parseInt(assignedTasks[0]?.in_progress_tasks || 0),
+      projectsCount: parseInt(projectsCount[0]?.projects_count || 0)
+    };
+
+    res.json(stats);
   } catch (error) {
     console.error('Get stats error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      message: error.message,
+      ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
+    });
   }
 });
 

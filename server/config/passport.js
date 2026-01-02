@@ -7,7 +7,7 @@ const { pool } = require('./database');
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: "/api/auth/google/callback"
+  callbackURL: process.env.GOOGLE_CALLBACK_URL || `${process.env.CLIENT_URL || 'http://localhost:8080'}/api/auth/google/callback`
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     const { id, displayName, emails, photos } = profile;
@@ -23,7 +23,7 @@ passport.use(new GoogleStrategy({
     if (users.length > 0) {
       // Update user info if needed
       await pool.execute(
-        'UPDATE users SET name = ?, avatar = ?, updated_at = NOW() WHERE id = ?',
+        'UPDATE users SET name = ?, avatar = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
         [displayName, avatar, users[0].id]
       );
       
@@ -35,11 +35,12 @@ passport.use(new GoogleStrategy({
     // Create new user
     const [result] = await pool.execute(`
       INSERT INTO users (email, name, avatar, provider, provider_id, is_active, created_at)
-      VALUES (?, ?, ?, 'google', ?, 1, NOW())
+      VALUES (?, ?, ?, 'google', ?, 1, CURRENT_TIMESTAMP)
+      RETURNING id
     `, [email, displayName, avatar, id]);
 
     const newUser = {
-      id: result.insertId,
+      id: result[0].id,
       email,
       name: displayName,
       avatar
@@ -56,7 +57,9 @@ passport.use(new GoogleStrategy({
 passport.use(new GitHubStrategy({
   clientID: process.env.GITHUB_CLIENT_ID,
   clientSecret: process.env.GITHUB_CLIENT_SECRET,
-  callbackURL: "/api/auth/github/callback"
+  callbackURL: process.env.GITHUB_CALLBACK_URL || (process.env.NODE_ENV === 'production'
+    ? `${process.env.CLIENT_URL || 'https://task-managment-mauve.vercel.app'}/api/auth/github/callback`
+    : 'http://localhost:3000/api/auth/github/callback')
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     const { id, displayName, username, photos, emails } = profile;
@@ -66,14 +69,14 @@ passport.use(new GitHubStrategy({
 
     // Check if user exists
     let [users] = await pool.execute(
-      'SELECT id, email, name, avatar FROM users WHERE email = ? OR (provider = "github" AND provider_id = ?)',
+      'SELECT id, email, name, avatar FROM users WHERE email = ? OR (provider = \'github\' AND provider_id = ?)',
       [email, id]
     );
 
     if (users.length > 0) {
       // Update user info if needed
       await pool.execute(
-        'UPDATE users SET name = ?, avatar = ?, updated_at = NOW() WHERE id = ?',
+        'UPDATE users SET name = ?, avatar = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
         [name, avatar, users[0].id]
       );
       
@@ -85,11 +88,12 @@ passport.use(new GitHubStrategy({
     // Create new user
     const [result] = await pool.execute(`
       INSERT INTO users (email, name, avatar, provider, provider_id, is_active, created_at)
-      VALUES (?, ?, ?, 'github', ?, 1, NOW())
+      VALUES (?, ?, ?, 'github', ?, 1, CURRENT_TIMESTAMP)
+      RETURNING id
     `, [email, name, avatar, id]);
 
     const newUser = {
-      id: result.insertId,
+      id: result[0].id,
       email,
       name,
       avatar
