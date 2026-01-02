@@ -211,42 +211,96 @@ router.get('/me', authenticateToken, async (req, res) => {
 });
 
 // Google OAuth routes
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google', (req, res, next) => {
+  console.log('Google OAuth initiated');
+  console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID ? 'Set' : 'Not set');
+  console.log('GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET ? 'Set' : 'Not set');
+  passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+});
+
 router.get('/google/callback', 
-  passport.authenticate('google', { session: false }),
-  (req, res) => {
-    const token = jwt.sign(
-      { userId: req.user.id },
-      process.env.JWT_SECRET || 'fallback-secret',
-      { expiresIn: '7d' }
-    );
-    
-    const clientUrl = process.env.CLIENT_URL || (
-      process.env.NODE_ENV === 'production'
-        ? 'https://task-managment-mauve.vercel.app'
-        : 'http://localhost:8080'
-    );
-    res.redirect(`${clientUrl}/auth/callback?token=${token}`);
+  (req, res, next) => {
+    console.log('Google OAuth callback received');
+    passport.authenticate('google', { session: false }, (err, user, info) => {
+      if (err) {
+        console.error('Google OAuth error:', err);
+        const clientUrl = process.env.CLIENT_URL || (
+          process.env.NODE_ENV === 'production'
+            ? 'https://task-managment-mauve.vercel.app'
+            : 'http://localhost:8080'
+        );
+        return res.redirect(`${clientUrl}/login?error=oauth_failed`);
+      }
+      if (!user) {
+        console.error('Google OAuth: No user returned');
+        const clientUrl = process.env.CLIENT_URL || (
+          process.env.NODE_ENV === 'production'
+            ? 'https://task-managment-mauve.vercel.app'
+            : 'http://localhost:8080'
+        );
+        return res.redirect(`${clientUrl}/login?error=oauth_failed`);
+      }
+      
+      const token = jwt.sign(
+        { userId: user.id },
+        process.env.JWT_SECRET || 'fallback-secret',
+        { expiresIn: '7d' }
+      );
+      
+      const clientUrl = process.env.CLIENT_URL || (
+        process.env.NODE_ENV === 'production'
+          ? 'https://task-managment-mauve.vercel.app'
+          : 'http://localhost:8080'
+      );
+      res.redirect(`${clientUrl}/auth/callback?token=${token}`);
+    })(req, res, next);
   }
 );
 
 // GitHub OAuth routes
-router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
+router.get('/github', (req, res, next) => {
+  console.log('GitHub OAuth initiated');
+  console.log('GITHUB_CLIENT_ID:', process.env.GITHUB_CLIENT_ID ? 'Set' : 'Not set');
+  console.log('GITHUB_CLIENT_SECRET:', process.env.GITHUB_CLIENT_SECRET ? 'Set' : 'Not set');
+  passport.authenticate('github', { scope: ['user:email'] })(req, res, next);
+});
+
 router.get('/github/callback',
-  passport.authenticate('github', { session: false }),
-  (req, res) => {
-    const token = jwt.sign(
-      { userId: req.user.id },
-      process.env.JWT_SECRET || 'fallback-secret',
-      { expiresIn: '7d' }
-    );
-    
-    const clientUrl = process.env.CLIENT_URL || (
-      process.env.NODE_ENV === 'production'
-        ? 'https://task-managment-mauve.vercel.app'
-        : 'http://localhost:8080'
-    );
-    res.redirect(`${clientUrl}/auth/callback?token=${token}`);
+  (req, res, next) => {
+    console.log('GitHub OAuth callback received');
+    passport.authenticate('github', { session: false }, (err, user, info) => {
+      if (err) {
+        console.error('GitHub OAuth error:', err);
+        const clientUrl = process.env.CLIENT_URL || (
+          process.env.NODE_ENV === 'production'
+            ? 'https://task-managment-mauve.vercel.app'
+            : 'http://localhost:8080'
+        );
+        return res.redirect(`${clientUrl}/login?error=oauth_failed`);
+      }
+      if (!user) {
+        console.error('GitHub OAuth: No user returned');
+        const clientUrl = process.env.CLIENT_URL || (
+          process.env.NODE_ENV === 'production'
+            ? 'https://task-managment-mauve.vercel.app'
+            : 'http://localhost:8080'
+        );
+        return res.redirect(`${clientUrl}/login?error=oauth_failed`);
+      }
+      
+      const token = jwt.sign(
+        { userId: user.id },
+        process.env.JWT_SECRET || 'fallback-secret',
+        { expiresIn: '7d' }
+      );
+      
+      const clientUrl = process.env.CLIENT_URL || (
+        process.env.NODE_ENV === 'production'
+          ? 'https://task-managment-mauve.vercel.app'
+          : 'http://localhost:8080'
+      );
+      res.redirect(`${clientUrl}/auth/callback?token=${token}`);
+    })(req, res, next);
   }
 );
 
