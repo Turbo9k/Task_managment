@@ -4,10 +4,23 @@ const GitHubStrategy = require('passport-github2').Strategy;
 const { pool } = require('./database');
 
 // Google OAuth Strategy
+// Build callback URL - prioritize explicit GOOGLE_CALLBACK_URL, then construct from CLIENT_URL
+const getGoogleCallbackURL = () => {
+  if (process.env.GOOGLE_CALLBACK_URL) {
+    return process.env.GOOGLE_CALLBACK_URL;
+  }
+  const baseUrl = process.env.CLIENT_URL || (
+    process.env.NODE_ENV === 'production' 
+      ? 'https://task-managment-mauve.vercel.app'
+      : 'http://localhost:8080'
+  );
+  return `${baseUrl}/api/auth/google/callback`;
+};
+
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: process.env.GOOGLE_CALLBACK_URL || `${process.env.CLIENT_URL || 'http://localhost:8080'}/api/auth/google/callback`
+  callbackURL: getGoogleCallbackURL()
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     const { id, displayName, emails, photos } = profile;
@@ -54,12 +67,23 @@ passport.use(new GoogleStrategy({
 }));
 
 // GitHub OAuth Strategy
+// Build callback URL - prioritize explicit GITHUB_CALLBACK_URL, then construct from CLIENT_URL
+const getGitHubCallbackURL = () => {
+  if (process.env.GITHUB_CALLBACK_URL) {
+    return process.env.GITHUB_CALLBACK_URL;
+  }
+  const baseUrl = process.env.CLIENT_URL || (
+    process.env.NODE_ENV === 'production' 
+      ? 'https://task-managment-mauve.vercel.app'
+      : 'http://localhost:8080'
+  );
+  return `${baseUrl}/api/auth/github/callback`;
+};
+
 passport.use(new GitHubStrategy({
   clientID: process.env.GITHUB_CLIENT_ID,
   clientSecret: process.env.GITHUB_CLIENT_SECRET,
-  callbackURL: process.env.GITHUB_CALLBACK_URL || (process.env.NODE_ENV === 'production'
-    ? `${process.env.CLIENT_URL || 'https://task-managment-mauve.vercel.app'}/api/auth/github/callback`
-    : 'http://localhost:3000/api/auth/github/callback')
+  callbackURL: getGitHubCallbackURL()
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     const { id, displayName, username, photos, emails } = profile;

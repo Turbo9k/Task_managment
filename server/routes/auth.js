@@ -221,7 +221,12 @@ router.get('/google/callback',
       { expiresIn: '7d' }
     );
     
-    res.redirect(`${process.env.CLIENT_URL || 'http://localhost:8080'}/auth/callback?token=${token}`);
+    const clientUrl = process.env.CLIENT_URL || (
+      process.env.NODE_ENV === 'production'
+        ? 'https://task-managment-mauve.vercel.app'
+        : 'http://localhost:8080'
+    );
+    res.redirect(`${clientUrl}/auth/callback?token=${token}`);
   }
 );
 
@@ -236,7 +241,12 @@ router.get('/github/callback',
       { expiresIn: '7d' }
     );
     
-    res.redirect(`${process.env.CLIENT_URL || 'http://localhost:8080'}/auth/callback?token=${token}`);
+    const clientUrl = process.env.CLIENT_URL || (
+      process.env.NODE_ENV === 'production'
+        ? 'https://task-managment-mauve.vercel.app'
+        : 'http://localhost:8080'
+    );
+    res.redirect(`${clientUrl}/auth/callback?token=${token}`);
   }
 );
 
