@@ -224,20 +224,24 @@ router.get('/google/callback',
     passport.authenticate('google', { session: false }, (err, user, info) => {
       if (err) {
         console.error('Google OAuth error:', err);
-        const clientUrl = process.env.CLIENT_URL || (
+        let clientUrl = process.env.CLIENT_URL || (
           process.env.NODE_ENV === 'production'
             ? 'https://task-managment-mauve.vercel.app'
             : 'http://localhost:8080'
         );
+        // Remove trailing slash if present
+        clientUrl = clientUrl.replace(/\/$/, '');
         return res.redirect(`${clientUrl}/login?error=oauth_failed`);
       }
       if (!user) {
         console.error('Google OAuth: No user returned');
-        const clientUrl = process.env.CLIENT_URL || (
+        let clientUrl = process.env.CLIENT_URL || (
           process.env.NODE_ENV === 'production'
             ? 'https://task-managment-mauve.vercel.app'
             : 'http://localhost:8080'
         );
+        // Remove trailing slash if present
+        clientUrl = clientUrl.replace(/\/$/, '');
         return res.redirect(`${clientUrl}/login?error=oauth_failed`);
       }
       
@@ -247,11 +251,13 @@ router.get('/google/callback',
         { expiresIn: '7d' }
       );
       
-      const clientUrl = process.env.CLIENT_URL || (
+      let clientUrl = process.env.CLIENT_URL || (
         process.env.NODE_ENV === 'production'
           ? 'https://task-managment-mauve.vercel.app'
           : 'http://localhost:8080'
       );
+      // Remove trailing slash if present
+      clientUrl = clientUrl.replace(/\/$/, '');
       res.redirect(`${clientUrl}/auth/callback?token=${token}`);
     })(req, res, next);
   }
@@ -271,20 +277,24 @@ router.get('/github/callback',
     passport.authenticate('github', { session: false }, (err, user, info) => {
       if (err) {
         console.error('GitHub OAuth error:', err);
-        const clientUrl = process.env.CLIENT_URL || (
+        let clientUrl = process.env.CLIENT_URL || (
           process.env.NODE_ENV === 'production'
             ? 'https://task-managment-mauve.vercel.app'
             : 'http://localhost:8080'
         );
+        // Remove trailing slash if present
+        clientUrl = clientUrl.replace(/\/$/, '');
         return res.redirect(`${clientUrl}/login?error=oauth_failed`);
       }
       if (!user) {
         console.error('GitHub OAuth: No user returned');
-        const clientUrl = process.env.CLIENT_URL || (
+        let clientUrl = process.env.CLIENT_URL || (
           process.env.NODE_ENV === 'production'
             ? 'https://task-managment-mauve.vercel.app'
             : 'http://localhost:8080'
         );
+        // Remove trailing slash if present
+        clientUrl = clientUrl.replace(/\/$/, '');
         return res.redirect(`${clientUrl}/login?error=oauth_failed`);
       }
       
@@ -294,11 +304,13 @@ router.get('/github/callback',
         { expiresIn: '7d' }
       );
       
-      const clientUrl = process.env.CLIENT_URL || (
+      let clientUrl = process.env.CLIENT_URL || (
         process.env.NODE_ENV === 'production'
           ? 'https://task-managment-mauve.vercel.app'
           : 'http://localhost:8080'
       );
+      // Remove trailing slash if present
+      clientUrl = clientUrl.replace(/\/$/, '');
       res.redirect(`${clientUrl}/auth/callback?token=${token}`);
     })(req, res, next);
   }

@@ -9,11 +9,13 @@ const getGoogleCallbackURL = () => {
   if (process.env.GOOGLE_CALLBACK_URL) {
     return process.env.GOOGLE_CALLBACK_URL;
   }
-  const baseUrl = process.env.CLIENT_URL || (
+  let baseUrl = process.env.CLIENT_URL || (
     process.env.NODE_ENV === 'production' 
       ? 'https://task-managment-mauve.vercel.app'
       : 'http://localhost:8080'
   );
+  // Remove trailing slash if present
+  baseUrl = baseUrl.replace(/\/$/, '');
   return `${baseUrl}/api/auth/google/callback`;
 };
 
@@ -72,11 +74,13 @@ const getGitHubCallbackURL = () => {
   if (process.env.GITHUB_CALLBACK_URL) {
     return process.env.GITHUB_CALLBACK_URL;
   }
-  const baseUrl = process.env.CLIENT_URL || (
+  let baseUrl = process.env.CLIENT_URL || (
     process.env.NODE_ENV === 'production' 
       ? 'https://task-managment-mauve.vercel.app'
       : 'http://localhost:8080'
   );
+  // Remove trailing slash if present
+  baseUrl = baseUrl.replace(/\/$/, '');
   return `${baseUrl}/api/auth/github/callback`;
 };
 
