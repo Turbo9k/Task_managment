@@ -253,30 +253,32 @@ export default {
       const fullUrl = window.location.origin + authUrl
       console.log('Redirecting to:', authUrl)
       console.log('Full URL:', fullUrl)
+      console.log('About to redirect...')
       
-      // Use multiple methods to ensure redirect works
-      try {
-        // Method 1: Try window.location.replace first (most reliable)
-        window.location.replace(fullUrl)
-      } catch (e1) {
+      // Use setTimeout to ensure redirect happens after current execution
+      setTimeout(() => {
+        console.log('Executing redirect now...')
         try {
-          // Method 2: Fallback to window.location.href
-          window.location.href = fullUrl
-        } catch (e2) {
+          console.log('Trying window.location.replace...')
+          window.location.replace(fullUrl)
+          console.log('window.location.replace called')
+        } catch (e) {
+          console.error('Replace failed, trying href:', e)
           try {
-            // Method 3: Last resort - create a link and click it
+            window.location.href = fullUrl
+            console.log('window.location.href set')
+          } catch (e2) {
+            console.error('Href failed, trying link click:', e2)
             const link = document.createElement('a')
             link.href = fullUrl
             link.target = '_self'
             document.body.appendChild(link)
             link.click()
             document.body.removeChild(link)
-          } catch (e3) {
-            console.error('All redirect methods failed:', { e1, e2, e3 })
-            alert('Failed to redirect. Please try clicking the button again.')
+            console.log('Link click executed')
           }
         }
-      }
+      }, 0)
     }
 
     return {
