@@ -120,7 +120,8 @@
 
           <div class="mt-6 grid grid-cols-2 gap-3">
             <button
-              @click="handleSocialLogin('google')"
+              type="button"
+              @click.prevent="handleSocialLogin('google')"
               :disabled="isLoading"
               class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
             >
@@ -134,7 +135,8 @@
             </button>
 
             <button
-              @click="handleSocialLogin('github')"
+              type="button"
+              @click.prevent="handleSocialLogin('github')"
               :disabled="isLoading"
               class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
             >
@@ -178,29 +180,35 @@ export default {
     }
 
     const handleSocialLogin = (provider) => {
-      // Determine the correct OAuth URL based on environment
-      let authUrl = '/api/auth/' + provider
-      
-      if (typeof window !== 'undefined') {
-        const hostname = window.location.hostname
-        const isLocalhost = hostname === 'localhost' || 
-                           hostname === '127.0.0.1' ||
-                           hostname.startsWith('192.168.') ||
-                           hostname.startsWith('10.') ||
-                           hostname.startsWith('172.')
+      try {
+        console.log('OAuth button clicked for:', provider)
+        // Determine the correct OAuth URL based on environment
+        let authUrl = '/api/auth/' + provider
         
-        if (isLocalhost) {
-          // Localhost - use full URL to API server
-          const apiUrl = process.env.VUE_APP_API_URL || 'http://localhost:3000/api'
-          authUrl = `${apiUrl}/auth/${provider}`
-        } else {
-          // Production - use relative path (Vercel routes /api/* to serverless function)
-          authUrl = `/api/auth/${provider}`
+        if (typeof window !== 'undefined') {
+          const hostname = window.location.hostname
+          const isLocalhost = hostname === 'localhost' || 
+                             hostname === '127.0.0.1' ||
+                             hostname.startsWith('192.168.') ||
+                             hostname.startsWith('10.') ||
+                             hostname.startsWith('172.')
+          
+          if (isLocalhost) {
+            // Localhost - use full URL to API server
+            const apiUrl = process.env.VUE_APP_API_URL || 'http://localhost:3000/api'
+            authUrl = `${apiUrl}/auth/${provider}`
+          } else {
+            // Production - use relative path (Vercel routes /api/* to serverless function)
+            authUrl = `/api/auth/${provider}`
+          }
         }
+        
+        console.log('Redirecting to OAuth:', authUrl)
+        window.location.href = authUrl
+      } catch (error) {
+        console.error('OAuth error:', error)
+        alert('Failed to initiate OAuth login. Please try again.')
       }
-      
-      console.log('Redirecting to OAuth:', authUrl)
-      window.location.href = authUrl
     }
 
     return {
