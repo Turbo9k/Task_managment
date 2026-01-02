@@ -27,28 +27,40 @@ export default {
 
     onMounted(async () => {
       try {
+        console.log('Callback component mounted')
+        console.log('Current URL:', window.location.href)
+        
         // Get token from URL parameters
         const urlParams = new URLSearchParams(window.location.search)
         const token = urlParams.get('token')
+        
+        console.log('Token from URL:', token ? 'Found' : 'Not found')
 
         if (token) {
+          console.log('Processing social login with token...')
           // Handle social login with token
           const result = await store.dispatch('auth/socialLogin', {
             provider: 'social',
             token
           })
 
-          if (result.success) {
+          console.log('Social login result:', result)
+
+          if (result && result.success) {
+            console.log('Login successful, redirecting to dashboard')
             router.push('/dashboard')
           } else {
+            console.error('Social login failed:', result)
             router.push('/login?error=social_login_failed')
           }
         } else {
+          console.error('No token found in URL')
           // No token found, redirect to login
           router.push('/login?error=no_token')
         }
       } catch (error) {
         console.error('Auth callback error:', error)
+        console.error('Error details:', error.response || error.message)
         router.push('/login?error=callback_failed')
       }
     })

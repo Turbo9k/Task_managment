@@ -182,11 +182,15 @@ export default {
     const handleSocialLogin = (provider) => {
       try {
         console.log('OAuth button clicked for:', provider)
+        console.log('Current location:', window.location.href)
+        
         // Determine the correct OAuth URL based on environment
         let authUrl = '/api/auth/' + provider
         
         if (typeof window !== 'undefined') {
           const hostname = window.location.hostname
+          console.log('Hostname:', hostname)
+          
           const isLocalhost = hostname === 'localhost' || 
                              hostname === '127.0.0.1' ||
                              hostname.startsWith('192.168.') ||
@@ -203,11 +207,15 @@ export default {
           }
         }
         
-        console.log('Redirecting to OAuth:', authUrl)
-        window.location.href = authUrl
+        console.log('Redirecting to OAuth URL:', authUrl)
+        console.log('Full redirect URL:', window.location.origin + authUrl)
+        
+        // Use window.location.assign for better compatibility
+        window.location.assign(authUrl)
       } catch (error) {
         console.error('OAuth error:', error)
-        alert('Failed to initiate OAuth login. Please try again.')
+        console.error('Error stack:', error.stack)
+        alert('Failed to initiate OAuth login. Please check the console for details.')
       }
     }
 

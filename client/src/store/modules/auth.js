@@ -158,19 +158,37 @@ const actions = {
     commit('SET_LOADING', true)
     
     try {
+      console.log('socialLogin action called with token:', token ? 'Present' : 'Missing')
+      
+      // Set token first
+      commit('SET_TOKEN', token)
+      
       // Verify the token with backend
+      console.log('Calling /auth/me to verify token...')
       const response = await api.get('/auth/me', {
         headers: { Authorization: `Bearer ${token}` }
       })
       
-      commit('SET_TOKEN', token)
-      commit('SET_USER', response.data.user)
+      console.log('Auth/me response:', response.data)
       
-      toast.success(`Welcome! Signed in with ${provider}`)
-      return { success: true }
+      if (response.data && response.data.user) {
+        commit('SET_USER', response.data.user)
+        console.log('User set in store:', response.data.user.email)
+        
+        toast.success(`Welcome! Signed in with ${provider}`)
+        return { success: true }
+      } else {
+        console.error('No user data in response')
+        throw new Error('No user data received')
+      }
     } catch (error) {
-      const message = 'Social login failed'
+      console.error('Social login error:', error)
+      console.error('Error response:', error.response?.data)
+      const message = error.response?.data?.error || 'Social login failed'
       toast.error(message)
+      // Clear token on error
+      commit('SET_TOKEN', null)
+      commit('SET_USER', null)
       return { success: false, error: message }
     } finally {
       commit('SET_LOADING', false)
