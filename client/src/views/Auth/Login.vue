@@ -178,8 +178,8 @@ export default {
     }
 
     const handleSocialLogin = (provider) => {
-      // Determine the correct base URL based on environment
-      let baseUrl = '/api'
+      // Determine the correct OAuth URL based on environment
+      let authUrl = '/api/auth/' + provider
       
       if (typeof window !== 'undefined') {
         const hostname = window.location.hostname
@@ -190,20 +190,15 @@ export default {
                            hostname.startsWith('172.')
         
         if (isLocalhost) {
-          // Localhost - use full URL
-          baseUrl = process.env.VUE_APP_API_URL || 'http://localhost:3000/api'
+          // Localhost - use full URL to API server
+          const apiUrl = process.env.VUE_APP_API_URL || 'http://localhost:3000/api'
+          authUrl = `${apiUrl}/auth/${provider}`
         } else {
-          // Production - use relative path
-          baseUrl = '/api'
+          // Production - use relative path (Vercel routes /api/* to serverless function)
+          authUrl = `/api/auth/${provider}`
         }
       }
       
-      // Remove /api if it's already in the baseUrl
-      if (baseUrl.endsWith('/api')) {
-        baseUrl = baseUrl.replace(/\/api$/, '')
-      }
-      
-      const authUrl = `${baseUrl}/api/auth/${provider}`
       console.log('Redirecting to OAuth:', authUrl)
       window.location.href = authUrl
     }
