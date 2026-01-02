@@ -253,32 +253,14 @@ export default {
       const fullUrl = window.location.origin + authUrl
       console.log('Redirecting to:', authUrl)
       console.log('Full URL:', fullUrl)
-      console.log('About to redirect...')
       
-      // Use setTimeout to ensure redirect happens after current execution
-      setTimeout(() => {
-        console.log('Executing redirect now...')
-        try {
-          console.log('Trying window.location.replace...')
-          window.location.replace(fullUrl)
-          console.log('window.location.replace called')
-        } catch (e) {
-          console.error('Replace failed, trying href:', e)
-          try {
-            window.location.href = fullUrl
-            console.log('window.location.href set')
-          } catch (e2) {
-            console.error('Href failed, trying link click:', e2)
-            const link = document.createElement('a')
-            link.href = fullUrl
-            link.target = '_self'
-            document.body.appendChild(link)
-            link.click()
-            document.body.removeChild(link)
-            console.log('Link click executed')
-          }
-        }
-      }, 0)
+      // Force immediate redirect - bypass Vue Router completely
+      // Use top-level window to ensure it's not blocked
+      if (window.top) {
+        window.top.location.href = fullUrl
+      } else {
+        window.location.href = fullUrl
+      }
     }
 
     return {
