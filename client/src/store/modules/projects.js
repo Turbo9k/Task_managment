@@ -60,6 +60,8 @@ const mutations = {
       const member = state.currentProject.members.find(m => m.id === userId)
       if (member) {
         member.avatar = avatar
+        // Force reactivity
+        state.currentProject.members = [...state.currentProject.members]
       }
     }
     // Update avatar in projects list if user is a member
@@ -71,6 +73,8 @@ const mutations = {
         }
       }
     })
+    // Force reactivity
+    state.projects = [...state.projects]
   },
   CLEAR_PROJECTS(state) {
     state.projects = []
