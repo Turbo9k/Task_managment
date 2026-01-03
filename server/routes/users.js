@@ -29,18 +29,28 @@ router.get('/', async (req, res) => {
 
 // Update user profile
 router.put('/profile', [
-  body('name').optional().trim().isLength({ min: 2 }),
-  body('avatar').optional().custom((value) => {
-    // Accept URLs (http/https) or blob URLs
-    if (!value) return true;
-    if (typeof value !== 'string') return false;
-    // Check if it's a valid URL or blob URL
+  body('name').optional({ checkFalsy: true }).trim().isLength({ min: 2 }),
+  body('avatar').optional({ checkFalsy: true }).custom((value) => {
+    // Accept empty/null values
+    if (!value || value === '' || value === 'null' || value === 'undefined') {
+      return true;
+    }
+    if (typeof value !== 'string') {
+      return false;
+    }
+    
+    // Check if it's a base64 data URL (most common case now)
+    if (value.startsWith('data:image/')) {
+      return true;
+    }
+    
+    // Check if it's a valid URL (http/https/blob)
     try {
       const url = new URL(value);
       return url.protocol === 'http:' || url.protocol === 'https:' || url.protocol === 'blob:';
     } catch {
-      // If URL parsing fails, check if it's a base64 data URL
-      return value.startsWith('data:image/');
+      // If URL parsing fails and it's not a data URL, reject it
+      return false;
     }
   }).withMessage('Avatar must be a valid URL, blob URL, or data URL')
 ], async (req, res) => {
