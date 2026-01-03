@@ -24,12 +24,6 @@ const mutations = {
   SET_USER(state, user) {
     state.user = user
     state.isAuthenticated = !!user
-    console.log('SET_USER called:', { 
-      hasUser: !!user, 
-      userId: user?.id, 
-      email: user?.email,
-      isAuthenticated: !!user 
-    })
   },
   SET_TOKEN(state, token) {
     state.token = token
@@ -57,28 +51,15 @@ const actions = {
     commit('SET_LOADING', true)
     
     try {
-      console.log('Checking auth with token:', state.token ? 'Token exists' : 'No token');
       const response = await api.get('/auth/me')
-      console.log('Auth check successful:', response.data)
       commit('SET_USER', response.data.user)
       commit('SET_TOKEN', state.token)
     } catch (error) {
       console.error('Auth check failed:', error)
-      console.error('Error response:', error.response?.data)
-      console.error('Error status:', error.response?.status)
-      
-      // Only logout on 401/403, not on network errors
-      if (error.response) {
-        const status = error.response.status
-        if (status === 401 || status === 403) {
-          console.log('Invalid token, logging out')
-          commit('LOGOUT')
-        } else {
-          console.log('Auth check failed with status', status, 'but keeping session')
-        }
-      } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+      if (error.code === 'NETWORK_ERROR' || !error.response) {
         console.log('Network error during auth check, continuing without auth')
-        // Don't logout on network errors - might be temporary
+      } else {
+        commit('LOGOUT')
       }
     } finally {
       commit('SET_LOADING', false)
@@ -89,43 +70,16 @@ const actions = {
     commit('SET_LOADING', true)
     
     try {
-      console.log('Attempting login to:', api.defaults.baseURL + '/auth/login');
       const response = await api.post('/auth/login', credentials)
       const { token, user } = response.data
-      
-      console.log('Login successful, setting token and user:', { 
-        hasToken: !!token, 
-        userId: user?.id,
-        email: user?.email 
-      });
       
       commit('SET_TOKEN', token)
       commit('SET_USER', user)
       
-      // Don't verify immediately - the token was just created, give it a moment
-      // The router guard will check auth when navigating to dashboard
-      console.log('Login complete, token set. Auth will be checked on navigation.')
-      
       toast.success('Welcome back!')
       return { success: true }
     } catch (error) {
-      console.error('Login error:', error);
-      console.error('Error details:', {
-        message: error.message,
-        code: error.code,
-        response: error.response?.data,
-        request: error.request ? 'Request made but no response' : 'No request made'
-      });
-      
-      let message = 'Login failed';
-      if (error.response?.data?.error) {
-        message = error.response.data.error;
-      } else if (error.message) {
-        message = error.message;
-      } else if (!error.response && error.request) {
-        message = 'Network error: Unable to reach server. Please check your connection.';
-      }
-      
+      const message = error.response?.data?.error || 'Login failed'
       toast.error(message)
       return { success: false, error: message }
     } finally {
@@ -154,54 +108,32 @@ const actions = {
     }
   },
 
-  async socialLogin({ commit, state }, { provider, token }) {
+  async socialLogin({ commit }, { provider, token }) {
     commit('SET_LOADING', true)
     
     try {
-      console.log('=== socialLogin action ===')
-      console.log('Token present:', !!token)
-      
-      // Set token first
+      console.log('Social login - setting token')
+      // Set token first so API calls use it
       commit('SET_TOKEN', token)
-      console.log('Token set in store')
       
+      console.log('Social login - calling /auth/me')
       // Verify the token with backend
-      console.log('Calling /auth/me to verify token...')
-      const response = await api.get('/auth/me', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      const response = await api.get('/auth/me')
       
-      console.log('Auth/me response:', response.data)
+      console.log('Social login - user data received:', response.data)
+      commit('SET_USER', response.data.user)
       
-      if (response.data && response.data.user) {
-        commit('SET_USER', response.data.user)
-        console.log('User set in store:', response.data.user.email)
-        console.log('Auth state:', { 
-          isAuthenticated: state.isAuthenticated, 
-          hasUser: !!state.user, 
-          hasToken: !!state.token 
-        })
-        
-        // Double-check state is set
-        if (!state.isAuthenticated) {
-          console.warn('isAuthenticated not set, forcing update')
-          commit('SET_USER', response.data.user)
-        }
-        
-        toast.success(`Welcome! Signed in with ${provider}`)
-        return { success: true, user: response.data.user }
-      } else {
-        console.error('No user data in response')
-        throw new Error('No user data received')
-      }
+      toast.success(`Welcome! Signed in with ${provider}`)
+      return { success: true }
     } catch (error) {
       console.error('Social login error:', error)
       console.error('Error response:', error.response?.data)
-      const message = error.response?.data?.error || 'Social login failed'
+      console.error('Error status:', error.response?.status)
+      console.error('Error message:', error.message)
+      
+      const message = error.response?.data?.error || error.message || 'Social login failed'
       toast.error(message)
-      // Clear token on error
-      commit('SET_TOKEN', null)
-      commit('SET_USER', null)
+      commit('LOGOUT') // Clear invalid token
       return { success: false, error: message }
     } finally {
       commit('SET_LOADING', false)
@@ -210,32 +142,20 @@ const actions = {
 
   async logout({ commit, dispatch }) {
     try {
-      // Disconnect socket (use root: true for namespaced modules)
-      try {
-        await dispatch('socket/disconnect', null, { root: true })
-      } catch (e) {
-        // Socket might not be connected, ignore
-        console.log('Socket disconnect skipped:', e.message)
-      }
+      // Disconnect socket
+      await dispatch('socket/disconnect')
       
       // Clear auth state
       commit('LOGOUT')
       
-      // Clear other modules (use commit with root: true for namespaced modules)
-      try {
-        commit('projects/CLEAR_PROJECTS', null, { root: true })
-        commit('tasks/CLEAR_TASKS', null, { root: true })
-        commit('users/CLEAR_USERS', null, { root: true })
-      } catch (e) {
-        // Modules might not be initialized, ignore
-        console.log('Module clear skipped:', e.message)
-      }
+      // Clear other modules
+      commit('projects/CLEAR_PROJECTS')
+      commit('tasks/CLEAR_TASKS')
+      commit('users/CLEAR_USERS')
       
       toast.success('Logged out successfully')
     } catch (error) {
       console.error('Logout error:', error)
-      // Still clear local state even if other operations fail
-      commit('LOGOUT')
     }
   },
 

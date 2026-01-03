@@ -149,7 +149,8 @@ export default {
     const users = computed(() => store.getters['users/users'])
     const modalData = computed(() => store.getters['modals/modalData'])
 
-    const isEditing = computed(() => !!modalData.value)
+    // Only editing if modalData has an id (existing task), not just projectId
+    const isEditing = computed(() => !!(modalData.value && modalData.value.id))
 
     const closeModal = () => {
       store.dispatch('modals/hideTaskModal')
@@ -170,13 +171,22 @@ export default {
 
     const handleSubmit = async () => {
       try {
-        if (isEditing.value) {
+        // Ensure project_id is a number, not a string
+        const taskData = {
+          ...form.value,
+          project_id: form.value.project_id ? parseInt(form.value.project_id) : null,
+          assignee_id: form.value.assignee_id ? parseInt(form.value.assignee_id) : null
+        }
+
+        if (isEditing.value && modalData.value?.id) {
+          // Only update if we have a valid task ID
           await store.dispatch('tasks/updateTask', {
             taskId: modalData.value.id,
-            taskData: form.value
+            taskData: taskData
           })
         } else {
-          await store.dispatch('tasks/createTask', form.value)
+          // Create new task
+          await store.dispatch('tasks/createTask', taskData)
         }
         closeModal()
       } catch (error) {
@@ -196,8 +206,14 @@ export default {
     onMounted(() => {
       loadData()
       
-      if (isEditing.value) {
-        form.value = { ...modalData.value }
+      if (isEditing.value && modalData.value?.id) {
+        // Editing existing task - populate form with task data
+        // Only copy task fields, not id
+        const { id, ...taskData } = modalData.value
+        form.value = { ...taskData }
+      } else if (modalData.value && modalData.value.projectId) {
+        // Creating new task with pre-selected project
+        form.value.project_id = modalData.value.projectId
       }
     })
 

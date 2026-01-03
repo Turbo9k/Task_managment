@@ -27,53 +27,41 @@ export default {
 
     onMounted(async () => {
       try {
-        console.log('=== Callback Component Mounted ===')
-        console.log('Current URL:', window.location.href)
-        
         // Get token from URL parameters
         const urlParams = new URLSearchParams(window.location.search)
         const token = urlParams.get('token')
-        
-        console.log('Token from URL:', token ? 'Found' : 'Not found')
 
-        if (!token) {
-          console.error('No token found in URL')
-          router.push('/login?error=no_token')
-          return
-        }
+        console.log('Auth callback - token received:', token ? 'Yes' : 'No')
 
-        console.log('Processing social login with token...')
-        
-        // Handle social login with token
-        const result = await store.dispatch('auth/socialLogin', {
-          provider: 'social',
-          token
-        })
+        if (token) {
+          // Handle social login with token
+          const result = await store.dispatch('auth/socialLogin', {
+            provider: 'Google',
+            token
+          })
 
-        console.log('Social login result:', result)
+          console.log('Social login result:', result)
 
-        // Wait a moment for state to update
-        await new Promise(resolve => setTimeout(resolve, 100))
-
-        // Verify auth state
-        const isAuthenticated = store.getters['auth/isAuthenticated']
-        const hasUser = store.getters['auth/user']
-        const hasToken = store.getters['auth/token']
-
-        console.log('Auth state after login:', { isAuthenticated, hasUser: !!hasUser, hasToken: !!hasToken })
-
-        if (result && result.success && isAuthenticated && hasUser) {
-          console.log('Login successful, redirecting to dashboard')
-          // Use replace to prevent back button issues
-          router.replace('/dashboard')
+          if (result.success) {
+            console.log('Redirecting to dashboard')
+            router.push('/dashboard')
+          } else {
+            console.error('Social login failed:', result.error)
+            router.push(`/login?error=social_login_failed&msg=${encodeURIComponent(result.error || 'Unknown error')}`)
+          }
         } else {
-          console.error('Social login failed or auth state invalid:', { result, isAuthenticated, hasUser, hasToken })
-          router.replace('/login?error=social_login_failed')
+          // No token found, redirect to login
+          console.error('No token in URL')
+          router.push('/login?error=no_token')
         }
       } catch (error) {
         console.error('Auth callback error:', error)
-        console.error('Error details:', error.response || error.message)
-        router.replace('/login?error=callback_failed')
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack,
+          response: error.response?.data
+        })
+        router.push(`/login?error=callback_failed&msg=${encodeURIComponent(error.message || 'Unknown error')}`)
       }
     })
 

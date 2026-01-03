@@ -39,12 +39,6 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/projects/:id',
-    name: 'ProjectDetail',
-    component: () => import('../views/ProjectDetail.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
     path: '/tasks',
     name: 'Tasks',
     component: () => import('../views/Tasks.vue'),
@@ -98,38 +92,6 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const isAuthenticated = store.getters['auth/isAuthenticated']
   const isLoading = store.state.auth.isLoading
-  const hasToken = store.getters['auth/token']
-  const hasUser = store.getters['auth/user']
-
-  console.log('Router guard:', { to: to.path, from: from.path, isAuthenticated, hasToken, hasUser, isLoading })
-
-  // Allow callback route to proceed without checks (it handles auth itself)
-  if (to.path === '/auth/callback') {
-    console.log('Allowing callback route')
-    next()
-    return
-  }
-
-  // If we just logged in (coming from login or callback page with user set), trust the login
-  if ((from.path === '/login' || from.path === '/auth/callback') && hasUser && hasToken) {
-    console.log('Just logged in, skipping auth check')
-    next()
-    return
-  }
-
-  // If we have a token and user but aren't marked as authenticated, trust it
-  if (hasToken && hasUser && !isAuthenticated) {
-    console.log('Has token and user, marking as authenticated')
-    store.commit('auth/SET_USER', hasUser)
-    next()
-    return
-  }
-
-  // If we have a token but no user, check auth (but only if not coming from login/callback)
-  if (hasToken && !hasUser && !isAuthenticated && to.meta.requiresAuth && from.path !== '/login' && from.path !== '/auth/callback') {
-    console.log('Has token but no user, checking auth...')
-    await store.dispatch('auth/checkAuth')
-  }
 
   // Wait for auth check to complete
   if (isLoading) {
@@ -147,15 +109,13 @@ router.beforeEach(async (to, from, next) => {
   }
 
   // Check if route requires authentication
-  const finalAuthState = store.getters['auth/isAuthenticated'] || (hasToken && hasUser)
-  if (to.meta.requiresAuth && !finalAuthState) {
-    console.log('Route requires auth but user not authenticated, redirecting to login')
+  if (to.meta.requiresAuth && !isAuthenticated) {
     next('/login')
     return
   }
 
-  // Redirect authenticated users away from auth pages (but not callback)
-  if (to.meta.hideForAuth && finalAuthState && to.path !== '/auth/callback') {
+  // Redirect authenticated users away from auth pages
+  if (to.meta.hideForAuth && isAuthenticated) {
     next('/dashboard')
     return
   }
