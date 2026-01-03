@@ -232,20 +232,22 @@
       </div>
     </div>
 
-    <!-- Event Modal -->
-    <EventModal v-if="showEventModal" :event="selectedEvent" @close="closeEventModal" @save="saveEvent" />
-
-    <!-- Add Event Modal -->
-    <AddEventModal v-if="showAddEventModal" :date="selectedDate" @close="closeAddEventModal" @save="addEvent" />
+    <!-- Task Details Modal (simplified) -->
+    <div v-if="selectedEvent" class="fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center" @click="closeEventModal">
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4" @click.stop>
+        <h3 class="text-lg font-bold mb-2">{{ selectedEvent.title }}</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">{{ selectedEvent.description }}</p>
+        <p class="text-xs text-gray-500">Project: {{ selectedEvent.projectName }}</p>
+        <button @click="closeEventModal" class="mt-4 btn-primary">Close</button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useStore } from 'vuex'
 import { Calendar, ChevronLeft, ChevronRight, Plus } from 'lucide-vue-next'
-import EventModal from '../components/Modals/EventModal.vue'
-import AddEventModal from '../components/Modals/AddEventModal.vue'
 
 export default {
   name: 'Calendar',
@@ -253,9 +255,7 @@ export default {
     Calendar,
     ChevronLeft,
     ChevronRight,
-    Plus,
-    EventModal,
-    AddEventModal
+    Plus
   },
   setup() {
     const store = useStore()
@@ -323,32 +323,57 @@ export default {
       return days
     })
 
-    const events = ref([
-      {
-        id: 1,
-        title: 'Team Meeting',
-        date: new Date().toISOString().split('T')[0],
-        time: '10:00 AM',
-        priority: 'high',
-        description: 'Weekly team standup meeting'
-      },
-      {
-        id: 2,
-        title: 'Project Deadline',
-        date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-        time: '5:00 PM',
-        priority: 'urgent',
-        description: 'Final project submission deadline'
-      },
-      {
-        id: 3,
-        title: 'Code Review',
-        date: new Date(Date.now() + 172800000).toISOString().split('T')[0],
-        time: '2:00 PM',
-        priority: 'medium',
-        description: 'Review pull requests and provide feedback'
+    const events = ref([])
+    const tasks = ref([])
+    const currentUser = computed(() => store.getters['auth/user'])
+
+    const loadUserTasks = async () => {
+      try {
+        // Fetch all projects the user is a member of
+        const projects = await store.dispatch('projects/fetchProjects')
+        
+        // Fetch tasks from all projects
+        const allTasks = []
+        for (const project of projects) {
+          try {
+            const projectTasks = await store.dispatch('tasks/fetchTasks', project.id)
+            if (Array.isArray(projectTasks)) {
+              allTasks.push(...projectTasks)
+            }
+          } catch (error) {
+            console.error(`Failed to fetch tasks for project ${project.id}:`, error)
+          }
+        }
+        
+        // Filter tasks where user is assignee or creator, and has a due date
+        const userTasks = allTasks.filter(task => 
+          task.due_date && 
+          (task.assignee_id === currentUser.value?.id || task.created_by === currentUser.value?.id)
+        )
+        
+        tasks.value = userTasks
+        
+        // Convert tasks to events for calendar display
+        events.value = userTasks.map(task => ({
+          id: task.id,
+          title: task.title,
+          date: task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : null,
+          time: task.due_date ? new Date(task.due_date).toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }) : '',
+          priority: task.priority || 'medium',
+          description: task.description || '',
+          taskId: task.id,
+          projectId: task.project_id,
+          projectName: task.project_name || 'Unknown Project'
+        })).filter(event => event.date) // Only include events with valid dates
+        
+        console.log('[Calendar] Loaded', events.value.length, 'tasks with due dates')
+      } catch (error) {
+        console.error('[Calendar] Failed to load user tasks:', error)
       }
-    ])
+    }
 
     const getEventsForDate = (date) => {
       return events.value.filter(event => event.date === date)
@@ -419,9 +444,15 @@ export default {
       })
     }
 
-    onMounted(() => {
+    onMounted(async () => {
       selectedDate.value = new Date().toISOString().split('T')[0]
+      await loadUserTasks()
     })
+
+    // Watch for task updates
+    watch(() => store.getters['tasks/tasks'], () => {
+      loadUserTasks()
+    }, { deep: true })
 
     return {
       currentDate,
@@ -436,6 +467,8 @@ export default {
       calendarDays,
       weekDays,
       events,
+      tasks,
+      currentUser,
       getEventsForDate,
       selectDate,
       addEvent,
@@ -446,7 +479,8 @@ export default {
       previousMonth,
       nextMonth,
       goToToday,
-      formatDate
+      formatDate,
+      loadUserTasks
     }
   }
 }

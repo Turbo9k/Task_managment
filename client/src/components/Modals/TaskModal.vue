@@ -89,11 +89,12 @@
           </div>
 
           <div>
-            <label class="label">Due Date</label>
+            <label class="label">Due Date <span class="text-red-500">*</span></label>
             <input
               v-model="form.due_date"
               type="datetime-local"
               class="input"
+              required
             />
           </div>
 

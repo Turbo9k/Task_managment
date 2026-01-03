@@ -294,6 +294,9 @@ export default {
           console.log('[ProjectDetail] Fetched tasks:', tasksResponse)
           tasks.value = Array.isArray(tasksResponse) ? tasksResponse : []
           console.log('[ProjectDetail] Tasks value set to:', tasks.value.length, 'tasks')
+          
+          // Update stats based on actual tasks
+          updateStatsFromTasks()
         } catch (error) {
           console.error('[ProjectDetail] Failed to fetch tasks:', error)
           tasks.value = []
@@ -362,6 +365,39 @@ export default {
       if (!name) return 'https://ui-avatars.com/api/?name=User&background=random'
       return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`
     }
+
+    const updateStatsFromTasks = () => {
+      if (!tasks.value || tasks.value.length === 0) {
+        projectStats.value = {
+          total_tasks: 0,
+          done_tasks: 0,
+          in_progress_tasks: 0,
+          todo_tasks: 0,
+          review_tasks: 0,
+          overdue_tasks: 0
+        }
+        return
+      }
+
+      const now = new Date()
+      projectStats.value = {
+        total_tasks: tasks.value.length,
+        done_tasks: tasks.value.filter(t => t.status === 'done').length,
+        in_progress_tasks: tasks.value.filter(t => t.status === 'in_progress').length,
+        todo_tasks: tasks.value.filter(t => t.status === 'todo').length,
+        review_tasks: tasks.value.filter(t => t.status === 'review').length,
+        overdue_tasks: tasks.value.filter(t => 
+          t.due_date && 
+          new Date(t.due_date) < now && 
+          t.status !== 'done'
+        ).length
+      }
+    }
+
+    // Watch tasks and update stats
+    watch(() => tasks.value, () => {
+      updateStatsFromTasks()
+    }, { deep: true })
 
     const deleteProject = async () => {
       if (!confirm(`Are you sure you want to delete "${project.value.name}"? This action cannot be undone.`)) {
