@@ -39,7 +39,7 @@ const requireProjectMember = async (req, res, next) => {
       
       console.log(`[ProjectAuth] Project lookup: ${projects.length} projects found, creator: ${projects[0]?.created_by}`);
       
-      if (projects.length > 0 && projects[0].created_by === req.user.id) {
+      if (projects.length > 0 && parseInt(projects[0].created_by) === parseInt(req.user.id)) {
         // User is the creator but not in project_users - add them
         console.log(`[ProjectAuth] User is creator, auto-adding to project_users...`);
         try {
