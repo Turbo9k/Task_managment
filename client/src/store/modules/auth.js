@@ -161,12 +161,21 @@ const actions = {
 
   async updateProfile({ commit }, profileData) {
     try {
+      // Log what we're sending (truncate avatar for logging)
+      const logData = {
+        ...profileData,
+        avatar: profileData.avatar ? profileData.avatar.substring(0, 50) + '...' : null
+      }
+      console.log('[Auth] Updating profile:', logData)
+      
       const response = await api.put('/users/profile', profileData)
       commit('SET_USER', response.data)
       toast.success('Profile updated successfully')
       return { success: true }
     } catch (error) {
-      const message = error.response?.data?.error || 'Profile update failed'
+      console.error('[Auth] Profile update error:', error)
+      console.error('[Auth] Error response:', error.response?.data)
+      const message = error.response?.data?.error || error.response?.data?.errors?.[0]?.msg || 'Profile update failed'
       toast.error(message)
       return { success: false, error: message }
     }
