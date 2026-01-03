@@ -77,7 +77,7 @@ const actions = {
     }
   },
 
-  async fetchProject({ commit }, projectId) {
+  async fetchProject({ commit, dispatch }, projectId) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
@@ -86,11 +86,39 @@ const actions = {
       commit('SET_CURRENT_PROJECT', response.data)
       return response.data
     } catch (error) {
-      const message = error.response?.data?.error || 'Failed to fetch project'
-      commit('SET_ERROR', message)
-      throw error
+      // If 403 and error mentions "not a member", try to fix membership
+      if (error.response?.status === 403 && 
+          error.response?.data?.error?.includes('not a member')) {
+        try {
+          await dispatch('fixMembership', projectId)
+          // Retry fetching the project
+          const response = await api.get(`/projects/${projectId}`)
+          commit('SET_CURRENT_PROJECT', response.data)
+          return response.data
+        } catch (fixError) {
+          // If fix also fails, throw original error
+          const message = error.response?.data?.error || 'Failed to fetch project'
+          commit('SET_ERROR', message)
+          throw error
+        }
+      } else {
+        const message = error.response?.data?.error || 'Failed to fetch project'
+        commit('SET_ERROR', message)
+        throw error
+      }
     } finally {
       commit('SET_LOADING', false)
+    }
+  },
+
+  async fixMembership({ commit }, projectId) {
+    try {
+      const response = await api.post(`/projects/${projectId}/fix-membership`)
+      return response.data
+    } catch (error) {
+      const message = error.response?.data?.error || 'Failed to fix membership'
+      commit('SET_ERROR', message)
+      throw error
     }
   },
 
