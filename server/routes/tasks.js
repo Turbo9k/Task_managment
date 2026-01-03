@@ -149,7 +149,51 @@ router.post('/', [
   body('priority').isIn(['low', 'medium', 'high', 'urgent']),
   body('status').isIn(['todo', 'in_progress', 'review', 'done']),
   body('due_date').optional().isISO8601()
-], requireRole(['admin', 'member']), requireProjectMember, async (req, res) => {
+], requireRole(['admin', 'member']), async (req, res) => {
+  // Check project membership AFTER validation (so req.body is populated)
+  const projectId = req.body.project_id;
+  if (!projectId) {
+    return res.status(400).json({ error: 'Project ID is required' });
+  }
+  
+  // Check if user is a member
+  const [members] = await pool.execute(
+    'SELECT role FROM project_users WHERE project_id = ? AND user_id = ?',
+    [projectId, req.user.id]
+  );
+  
+  if (members.length === 0) {
+    // Check if user is the project creator
+    const [projects] = await pool.execute(
+      'SELECT created_by FROM projects WHERE id = ?',
+      [projectId]
+    );
+    
+    if (projects.length > 0 && parseInt(projects[0].created_by) === parseInt(req.user.id)) {
+      // Auto-add creator as admin
+      try {
+        await pool.execute(
+          'INSERT INTO project_users (project_id, user_id, role, joined_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)',
+          [projectId, req.user.id, 'admin']
+        );
+        console.log(`✅ Auto-added creator ${req.user.id} to project ${projectId}`);
+      } catch (insertError) {
+        // If duplicate, check again
+        const [retryMembers] = await pool.execute(
+          'SELECT role FROM project_users WHERE project_id = ? AND user_id = ?',
+          [projectId, req.user.id]
+        );
+        if (retryMembers.length === 0) {
+          console.error('Failed to auto-add creator:', insertError);
+          return res.status(403).json({ error: 'Access denied: You are not a member of this project' });
+        }
+      }
+    } else {
+      return res.status(403).json({ error: 'Access denied: You are not a member of this project' });
+    }
+  }
+  
+  // Continue with task creation
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
