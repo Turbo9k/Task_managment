@@ -128,11 +128,11 @@
             <div class="space-y-1">
               <div
                 v-for="event in getEventsForDate(day.date)"
-                :key="event.id"
+                :key="event.id || event.taskId"
                 @click.stop="viewEvent(event)"
                 :class="[
                   'text-xs p-1 rounded truncate cursor-pointer',
-                  event.priority === 'high' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300' :
+                  event.priority === 'urgent' || event.priority === 'high' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300' :
                   event.priority === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300' :
                   'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300'
                 ]"

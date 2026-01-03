@@ -42,6 +42,24 @@ export default {
       if (savedDarkMode !== darkMode.value) {
         store.dispatch('ui/setDarkMode', savedDarkMode)
       }
+
+      // Keep-alive ping to prevent serverless function timeouts
+      if (isAuthenticated.value) {
+        const keepAliveInterval = setInterval(async () => {
+          try {
+            // Ping auth endpoint to keep connection alive
+            await store.dispatch('auth/checkAuth')
+          } catch (error) {
+            console.error('Keep-alive ping failed:', error)
+            clearInterval(keepAliveInterval)
+          }
+        }, 30000) // Every 30 seconds
+
+        // Cleanup on unmount
+        return () => {
+          clearInterval(keepAliveInterval)
+        }
+      }
     })
 
     return {
