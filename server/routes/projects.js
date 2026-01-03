@@ -30,6 +30,61 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Fix project membership - allows project creator to add themselves if missing
+// MUST be before /:id route to avoid route conflicts
+router.post('/:id/fix-membership', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Check if project exists and user is the creator
+    const [projects] = await pool.execute(
+      'SELECT id, name, created_by FROM projects WHERE id = ?',
+      [id]
+    );
+    
+    if (projects.length === 0) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    
+    const project = projects[0];
+    
+    if (project.created_by !== req.user.id) {
+      return res.status(403).json({ error: 'Only the project creator can fix membership' });
+    }
+    
+    // Check if user is already a member
+    const [members] = await pool.execute(
+      'SELECT role FROM project_users WHERE project_id = ? AND user_id = ?',
+      [id, req.user.id]
+    );
+    
+    if (members.length > 0) {
+      return res.json({ 
+        message: 'You are already a member of this project',
+        role: members[0].role
+      });
+    }
+    
+    // Add creator as admin
+    await pool.execute(`
+      INSERT INTO project_users (project_id, user_id, role, joined_at)
+      VALUES (?, ?, 'admin', CURRENT_TIMESTAMP)
+    `, [id, req.user.id]);
+    
+    res.json({ 
+      message: 'Successfully added you as admin to the project',
+      role: 'admin'
+    });
+  } catch (error) {
+    console.error('Fix membership error:', error);
+    if (error.code === '23505' || error.message.includes('unique')) {
+      // Already exists
+      return res.json({ message: 'You are already a member of this project' });
+    }
+    res.status(500).json({ error: 'Internal server error', details: error.message });
+  }
+});
+
 // Get single project with details - requires project membership
 router.get('/:id', requireProjectMember, async (req, res) => {
   try {
@@ -76,6 +131,7 @@ router.get('/:id', requireProjectMember, async (req, res) => {
     `, [id]);
 
     // Get recent activity
+    // Use PostgreSQL-compatible string concatenation
     const [activity] = await pool.execute(`
       SELECT 
         'task_created' as type,
@@ -85,23 +141,23 @@ router.get('/:id', requireProjectMember, async (req, res) => {
         t.created_at as timestamp
       FROM tasks t
       LEFT JOIN users u ON t.created_by = u.id
-      WHERE t.project_id = ?
+      WHERE t.project_id = $1
       
       UNION ALL
       
       SELECT 
         'task_updated' as type,
-        CONCAT('Updated task: ', t.title) as description,
+        ('Updated task: ' || t.title) as description,
         u.name as user_name,
         u.avatar as user_avatar,
         t.updated_at as timestamp
       FROM tasks t
       LEFT JOIN users u ON t.assignee_id = u.id
-      WHERE t.project_id = ? AND t.updated_at > t.created_at
+      WHERE t.project_id = $1 AND t.updated_at > t.created_at
       
       ORDER BY timestamp DESC
       LIMIT 20
-    `, [id, id]);
+    `, [id]);
 
     res.json({
       ...project,
@@ -275,7 +331,12 @@ router.post('/:id/members', requireProjectMember, requireProjectRole(['admin']),
     });
   } catch (error) {
     console.error('Add member error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error details:', error.message);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
@@ -305,60 +366,6 @@ router.delete('/:id/members/:userId', requireProjectMember, requireProjectRole([
     res.json({ message: 'Member removed successfully' });
   } catch (error) {
     console.error('Remove member error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Fix project membership - allows project creator to add themselves if missing
-router.post('/:id/fix-membership', async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    // Check if project exists and user is the creator
-    const [projects] = await pool.execute(
-      'SELECT id, name, created_by FROM projects WHERE id = ?',
-      [id]
-    );
-    
-    if (projects.length === 0) {
-      return res.status(404).json({ error: 'Project not found' });
-    }
-    
-    const project = projects[0];
-    
-    if (project.created_by !== req.user.id) {
-      return res.status(403).json({ error: 'Only the project creator can fix membership' });
-    }
-    
-    // Check if user is already a member
-    const [members] = await pool.execute(
-      'SELECT role FROM project_users WHERE project_id = ? AND user_id = ?',
-      [id, req.user.id]
-    );
-    
-    if (members.length > 0) {
-      return res.json({ 
-        message: 'You are already a member of this project',
-        role: members[0].role
-      });
-    }
-    
-    // Add creator as admin
-    await pool.execute(`
-      INSERT INTO project_users (project_id, user_id, role, joined_at)
-      VALUES (?, ?, 'admin', CURRENT_TIMESTAMP)
-    `, [id, req.user.id]);
-    
-    res.json({ 
-      message: 'Successfully added you as admin to the project',
-      role: 'admin'
-    });
-  } catch (error) {
-    console.error('Fix membership error:', error);
-    if (error.code === '23505' || error.message.includes('unique')) {
-      // Already exists
-      return res.json({ message: 'You are already a member of this project' });
-    }
     res.status(500).json({ error: 'Internal server error' });
   }
 });
