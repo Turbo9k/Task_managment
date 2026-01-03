@@ -251,9 +251,17 @@ export default {
       
       if (isEditing.value && modalData.value?.id) {
         // Editing existing task - populate form with task data
-        // Only copy task fields, not id
-        const { id, ...taskData } = modalData.value
-        form.value = { ...taskData }
+        const taskData = modalData.value
+        form.value = {
+          title: taskData.title || '',
+          description: taskData.description || '',
+          priority: taskData.priority || 'medium',
+          status: taskData.status || 'todo',
+          project_id: taskData.project_id || '',
+          assignee_id: taskData.assignee_id || '',
+          due_date: taskData.due_date ? new Date(taskData.due_date).toISOString().slice(0, 16) : ''
+        }
+        console.log('[TaskModal] Editing task, form populated:', form.value)
         // Load members for the task's project
         if (taskData.project_id) {
           await loadProjectMembers(taskData.project_id)

@@ -418,6 +418,7 @@ export default {
     })
 
     // Listen for task updates from store (but don't override local tasks unnecessarily)
+    // Note: We're watching but not mutating store state - we're updating local ref
     const unwatchTasks = store.watch(
       (state) => state.tasks.tasks,
       (newTasks) => {
@@ -427,7 +428,8 @@ export default {
           // Only update if the store has tasks for this project and our local array is empty or different
           if (projectTasks.length > 0 && (tasks.value.length === 0 || projectTasks.length !== tasks.value.length)) {
             console.log('[ProjectDetail] Updating tasks from store:', projectTasks.length)
-            tasks.value = projectTasks
+            // Create a new array to avoid mutation issues
+            tasks.value = [...projectTasks]
           }
         }
       },

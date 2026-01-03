@@ -9,7 +9,7 @@ router.get('/', async (req, res) => {
   try {
     const { search } = req.query;
     
-    let query = 'SELECT id, name, email, avatar FROM users WHERE is_active = 1';
+    let query = 'SELECT id, name, email, avatar FROM users WHERE is_active = true';
     const params = [];
 
     if (search) {
