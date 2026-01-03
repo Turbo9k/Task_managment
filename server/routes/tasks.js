@@ -149,9 +149,21 @@ router.post('/', [
   body('priority').isIn(['low', 'medium', 'high', 'urgent']),
   body('status').isIn(['todo', 'in_progress', 'review', 'done']),
   body('due_date').optional().isISO8601()
-], requireRole(['admin', 'member']), async (req, res) => {
+], async (req, res) => {
+  console.log('[CreateTask] Route handler called');
+  console.log('[CreateTask] req.body:', JSON.stringify(req.body));
+  console.log('[CreateTask] req.user:', { id: req.user.id });
+  
+  // Validate first
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log('[CreateTask] Validation errors:', errors.array());
+    return res.status(400).json({ errors: errors.array() });
+  }
+  
   // Check project membership AFTER validation (so req.body is populated)
   const projectId = req.body.project_id;
+  console.log('[CreateTask] Project ID:', projectId);
   if (!projectId) {
     return res.status(400).json({ error: 'Project ID is required' });
   }
@@ -195,11 +207,6 @@ router.post('/', [
   
   // Continue with task creation
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
     const {
       title,
       description,
