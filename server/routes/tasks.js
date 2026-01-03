@@ -148,7 +148,7 @@ router.post('/', [
   body('description').optional().trim(),
   body('priority').isIn(['low', 'medium', 'high', 'urgent']),
   body('status').isIn(['todo', 'in_progress', 'review', 'done']),
-  body('due_date').optional().isISO8601()
+  body('due_date').optional({ checkFalsy: true }).isISO8601().withMessage('Invalid date format')
 ], async (req, res) => {
   console.log('[CreateTask] Route handler called');
   console.log('[CreateTask] req.body:', JSON.stringify(req.body));
@@ -218,6 +218,12 @@ router.post('/', [
       parent_task_id
     } = req.body;
 
+    // Clean up empty strings to null
+    const cleanDueDate = due_date && due_date.trim() !== '' ? due_date : null;
+    const cleanAssigneeId = assignee_id && assignee_id !== '' && assignee_id !== null ? parseInt(assignee_id) : null;
+
+    console.log('[CreateTask] Inserting task with:', { project_id, cleanDueDate, cleanAssigneeId });
+
     const [result] = await pool.execute(`
       INSERT INTO tasks (
         title, description, project_id, assignee_id, priority, 
@@ -225,8 +231,8 @@ router.post('/', [
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
       RETURNING id
     `, [
-      title, description, project_id, assignee_id, priority,
-      status, due_date || null, parent_task_id || null, req.user.id
+      title, description, project_id, cleanAssigneeId, priority,
+      status, cleanDueDate, parent_task_id || null, req.user.id
     ]);
 
     const taskId = result[0].id;
