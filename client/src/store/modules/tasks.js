@@ -129,13 +129,15 @@ const actions = {
     
     try {
       const response = await api.get(`/tasks/project/${projectId}`)
-      commit('SET_TASKS', response.data)
-      return response.data // Return tasks so component can use them directly
+      const tasks = Array.isArray(response.data) ? response.data : []
+      console.log(`[Tasks Store] Fetched ${tasks.length} tasks for project ${projectId}`)
+      commit('SET_TASKS', tasks)
+      return tasks // Return tasks so component can use them directly
     } catch (error) {
       const message = error.response?.data?.error || 'Failed to fetch tasks'
       commit('SET_ERROR', message)
-      console.error('Fetch tasks error:', error)
-      throw error
+      console.error('[Tasks Store] Fetch tasks error:', error)
+      return [] // Return empty array instead of throwing
     } finally {
       commit('SET_LOADING', false)
     }
