@@ -195,7 +195,9 @@ router.post('/', [
     `, [taskId]);
 
     // Emit real-time update
-    req.io.to(`project_${project_id}`).emit('task_created', tasks[0]);
+    if (req.io) {
+      req.io.to(`project_${project_id}`).emit('task_created', tasks[0]);
+    }
 
     res.status(201).json(tasks[0]);
   } catch (error) {
@@ -269,7 +271,9 @@ router.put('/:id', [
     }
 
     // Emit real-time update
-    req.io.to(`project_${tasks[0].project_id}`).emit('task_updated', tasks[0]);
+    if (req.io) {
+      req.io.to(`project_${tasks[0].project_id}`).emit('task_updated', tasks[0]);
+    }
 
     res.json(tasks[0]);
   } catch (error) {
@@ -301,7 +305,9 @@ router.delete('/:id', async (req, res) => {
     await pool.execute('DELETE FROM tasks WHERE id = ?', [id]);
 
     // Emit real-time update
-    req.io.to(`project_${tasks[0].project_id}`).emit('task_deleted', { id: parseInt(id) });
+    if (req.io) {
+      req.io.to(`project_${tasks[0].project_id}`).emit('task_deleted', { id: parseInt(id) });
+    }
 
     res.json({ message: 'Task deleted successfully' });
   } catch (error) {
@@ -342,7 +348,7 @@ router.post('/:id/attachments', upload.single('file'), async (req, res) => {
     // Get task project for real-time update
     const [tasks] = await pool.execute('SELECT project_id FROM tasks WHERE id = ?', [id]);
     
-    if (tasks.length > 0) {
+    if (tasks.length > 0 && req.io) {
       req.io.to(`project_${tasks[0].project_id}`).emit('task_attachment_added', {
         taskId: parseInt(id),
         attachment: {
@@ -403,7 +409,7 @@ router.post('/:id/comments', [
     // Get task project for real-time update
     const [tasks] = await pool.execute('SELECT project_id FROM tasks WHERE id = ?', [id]);
     
-    if (tasks.length > 0) {
+    if (tasks.length > 0 && req.io) {
       req.io.to(`project_${tasks[0].project_id}`).emit('task_comment_added', {
         taskId: parseInt(id),
         comment: comments[0]

@@ -266,7 +266,9 @@ router.put('/:id', requireProjectMember, requireProjectRole(['admin']), [
     }
 
     // Emit real-time update
-    req.io.to(`project_${id}`).emit('project_updated', projects[0]);
+    if (req.io) {
+      req.io.to(`project_${id}`).emit('project_updated', projects[0]);
+    }
 
     res.json(projects[0]);
   } catch (error) {
@@ -318,11 +320,13 @@ router.post('/:id/members', requireProjectMember, requireProjectRole(['admin']),
     `, [id, user.id, role]);
 
     // Emit real-time update
-    req.io.to(`project_${id}`).emit('member_added', {
-      ...user,
-      role,
-      joined_at: new Date().toISOString()
-    });
+    if (req.io) {
+      req.io.to(`project_${id}`).emit('member_added', {
+        ...user,
+        role,
+        joined_at: new Date().toISOString()
+      });
+    }
 
     res.status(201).json({
       ...user,
@@ -361,7 +365,9 @@ router.delete('/:id/members/:userId', requireProjectMember, requireProjectRole([
     );
 
     // Emit real-time update
-    req.io.to(`project_${id}`).emit('member_removed', { userId: parseInt(userId) });
+    if (req.io) {
+      req.io.to(`project_${id}`).emit('member_removed', { userId: parseInt(userId) });
+    }
 
     res.json({ message: 'Member removed successfully' });
   } catch (error) {
@@ -379,7 +385,9 @@ router.delete('/:id', requireProjectMember, requireProjectRole(['admin']), async
     await pool.execute('DELETE FROM projects WHERE id = ?', [id]);
 
     // Emit real-time update
-    req.io.to(`project_${id}`).emit('project_deleted', { id: parseInt(id) });
+    if (req.io) {
+      req.io.to(`project_${id}`).emit('project_deleted', { id: parseInt(id) });
+    }
 
     res.json({ message: 'Project deleted successfully' });
   } catch (error) {
