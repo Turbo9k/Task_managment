@@ -138,6 +138,8 @@
                         :src="getAvatarUrl(task.assignee_name, task.assignee_avatar)"
                         :alt="task.assignee_name"
                         class="w-4 h-4 rounded-full mr-1"
+                        @error="handleAvatarError"
+                        loading="lazy"
                       />
                       <span>{{ task.assignee_name }}</span>
                     </div>
@@ -201,6 +203,8 @@
                     :src="getAvatarUrl(member.name, member.avatar)"
                     :alt="member.name"
                     class="w-8 h-8 rounded-full"
+                    @error="handleAvatarError"
+                    loading="lazy"
                   />
                   <div>
                     <div class="font-medium text-gray-900 dark:text-white">{{ member.name }}</div>
@@ -361,9 +365,24 @@ export default {
 
     // Import avatar utility
     const getAvatarUrl = (name, avatar) => {
-      if (avatar && avatar.trim() !== '') return avatar
+      // Check if avatar is valid (not empty, not null, not undefined)
+      if (avatar && avatar.trim() !== '' && avatar !== 'null' && avatar !== 'undefined') {
+        // If it's a blob URL, it won't work for other users, so fallback to generated
+        if (avatar.startsWith('blob:')) {
+          // Generate fallback avatar
+          if (!name) return 'https://ui-avatars.com/api/?name=User&background=random'
+          return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`
+        }
+        return avatar
+      }
       if (!name) return 'https://ui-avatars.com/api/?name=User&background=random'
       return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`
+    }
+
+    const handleAvatarError = (event) => {
+      // Fallback to generated avatar if image fails to load
+      const name = event.target.alt || 'User'
+      event.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`
     }
 
     const updateStatsFromTasks = () => {
@@ -556,7 +575,8 @@ export default {
       deleteProject,
       getStatusBadgeClass,
       getRoleBadgeClass,
-      getAvatarUrl
+      getAvatarUrl,
+      handleAvatarError
     }
   }
 }

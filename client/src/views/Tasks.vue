@@ -120,6 +120,8 @@
                   :src="getAvatarUrl(task.assignee_name, task.assignee_avatar)"
                   :alt="task.assignee_name"
                   class="w-5 h-5 rounded-full mr-2"
+                  @error="handleAvatarError"
+                  loading="lazy"
                 />
                 <span>{{ task.assignee_name }}</span>
               </div>
@@ -217,9 +219,24 @@ export default {
     const isLoading = computed(() => store.getters['tasks/isLoading'])
 
     const getAvatarUrl = (name, avatar) => {
-      if (avatar && avatar.trim() !== '') return avatar
+      // Check if avatar is valid (not empty, not null, not undefined)
+      if (avatar && avatar.trim() !== '' && avatar !== 'null' && avatar !== 'undefined') {
+        // If it's a blob URL, it won't work for other users, so fallback to generated
+        if (avatar.startsWith('blob:')) {
+          // Generate fallback avatar
+          if (!name) return 'https://ui-avatars.com/api/?name=User&background=random'
+          return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`
+        }
+        return avatar
+      }
       if (!name) return 'https://ui-avatars.com/api/?name=User&background=random'
       return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`
+    }
+
+    const handleAvatarError = (event) => {
+      // Fallback to generated avatar if image fails to load
+      const name = event.target.alt || 'User'
+      event.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`
     }
 
     const createTask = () => {
@@ -316,7 +333,8 @@ export default {
       isOverdue,
       formatDate,
       openTaskChat,
-      closeChatModal
+      closeChatModal,
+      handleAvatarError
     }
   }
 }
