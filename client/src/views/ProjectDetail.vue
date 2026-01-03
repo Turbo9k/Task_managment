@@ -465,6 +465,12 @@ export default {
       }
     }, { deep: true })
 
+    // Watch for avatar updates in members
+    watch(() => members.value, (newMembers) => {
+      // Force reactivity update
+      members.value = [...newMembers]
+    }, { deep: true })
+
     // Real-time task updates via Socket.io
     watch(() => store.getters['socket/isConnected'], (isConnected) => {
       if (isConnected && project.value) {
