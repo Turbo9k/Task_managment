@@ -6,7 +6,11 @@ const { pool } = require('../config/database');
  */
 const requireProjectMember = async (req, res, next) => {
   try {
-    const projectId = req.params.id || req.params.projectId || req.body.projectId;
+    // Check multiple possible locations for project ID
+    const projectId = req.params.id || 
+                      req.params.projectId || 
+                      req.body.projectId || 
+                      req.body.project_id;
     
     if (!projectId) {
       return res.status(400).json({ error: 'Project ID is required' });
@@ -56,6 +60,10 @@ const requireProjectRole = (roles) => {
 };
 
 module.exports = { requireProjectMember, requireProjectRole };
+
+
+
+
 
 
 

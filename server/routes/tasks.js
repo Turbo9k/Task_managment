@@ -3,6 +3,7 @@ const { body, validationResult } = require('express-validator');
 const multer = require('multer');
 const { pool } = require('../config/database');
 const { requireRole } = require('../middleware/auth');
+const { requireProjectMember } = require('../middleware/projectAuth');
 
 // Configure multer for file uploads
 const upload = multer({
@@ -13,6 +14,38 @@ const upload = multer({
 });
 
 const router = express.Router();
+
+// Helper function to check if user is a member of the project that owns a task
+const checkTaskProjectMembership = async (taskId, userId) => {
+  try {
+    // First get the task's project_id
+    const [tasks] = await pool.execute(
+      'SELECT project_id FROM tasks WHERE id = ?',
+      [taskId]
+    );
+    
+    if (tasks.length === 0) {
+      return { isMember: false, error: 'Task not found' };
+    }
+    
+    const projectId = tasks[0].project_id;
+    
+    // Check if user is a member of the project
+    const [members] = await pool.execute(
+      'SELECT role FROM project_users WHERE project_id = ? AND user_id = ?',
+      [projectId, userId]
+    );
+    
+    if (members.length === 0) {
+      return { isMember: false, error: 'Access denied: You are not a member of this project' };
+    }
+    
+    return { isMember: true, role: members[0].role, projectId };
+  } catch (error) {
+    console.error('Task project membership check error:', error);
+    return { isMember: false, error: 'Internal server error' };
+  }
+};
 
 // Get all tasks for a project
 router.get('/project/:projectId', async (req, res) => {
@@ -116,7 +149,7 @@ router.post('/', [
   body('priority').isIn(['low', 'medium', 'high', 'urgent']),
   body('status').isIn(['todo', 'in_progress', 'review', 'done']),
   body('due_date').optional().isISO8601()
-], requireRole(['admin', 'member']), async (req, res) => {
+], requireRole(['admin', 'member']), requireProjectMember, async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -185,6 +218,14 @@ router.put('/:id', [
     }
 
     const { id } = req.params;
+    
+    // Check if user is a member of the project that owns this task
+    const membershipCheck = await checkTaskProjectMembership(id, req.user.id);
+    if (!membershipCheck.isMember) {
+      return res.status(membershipCheck.error === 'Task not found' ? 404 : 403).json({ 
+        error: membershipCheck.error 
+      });
+    }
     const updates = req.body;
     const updateFields = [];
     const values = [];
@@ -241,6 +282,14 @@ router.put('/:id', [
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Check if user is a member of the project that owns this task
+    const membershipCheck = await checkTaskProjectMembership(id, req.user.id);
+    if (!membershipCheck.isMember) {
+      return res.status(membershipCheck.error === 'Task not found' ? 404 : 403).json({ 
+        error: membershipCheck.error 
+      });
+    }
 
     // Get task details before deletion for real-time update
     const [tasks] = await pool.execute('SELECT project_id FROM tasks WHERE id = ?', [id]);
