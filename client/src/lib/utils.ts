@@ -36,3 +36,17 @@ export function throttle<T extends (...args: any[]) => any>(
   }
 }
 
+/**
+ * Get avatar URL for a user
+ * Uses their avatar if available, otherwise generates one from their name
+ */
+export function getAvatarUrl(name: string, avatar?: string | null): string {
+  if (avatar && avatar.trim() !== '') {
+    return avatar
+  }
+  if (!name) {
+    return 'https://ui-avatars.com/api/?name=User&background=random'
+  }
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`
+}
+

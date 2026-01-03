@@ -122,7 +122,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useStore } from 'vuex'
 import { X } from 'lucide-vue-next'
 
@@ -146,8 +146,25 @@ export default {
 
     const isLoading = computed(() => store.getters['tasks/isLoading'])
     const projects = computed(() => store.getters['projects/projects'])
-    const users = computed(() => store.getters['users/users'])
+    const allUsers = computed(() => store.getters['users/users'])
     const modalData = computed(() => store.getters['modals/modalData'])
+    
+    const projectMembers = ref([])
+    
+    // Filter users to only show project members when project is selected
+    const users = computed(() => {
+      if (!form.value.project_id) {
+        return allUsers.value
+      }
+      
+      // Use projectMembers if available, otherwise fall back to all users
+      if (projectMembers.value.length > 0) {
+        const memberIds = projectMembers.value.map(m => m.id)
+        return allUsers.value.filter(user => memberIds.includes(user.id))
+      }
+      
+      return allUsers.value
+    })
 
     // Only editing if modalData has an id (existing task), not just projectId
     const isEditing = computed(() => !!(modalData.value && modalData.value.id))
@@ -194,26 +211,57 @@ export default {
       }
     }
 
+    const loadProjectMembers = async (projectId) => {
+      if (!projectId) {
+        projectMembers.value = []
+        return
+      }
+      
+      try {
+        const projectData = await store.dispatch('projects/fetchProject', projectId)
+        if (projectData.members) {
+          projectMembers.value = projectData.members
+        }
+      } catch (error) {
+        console.error('Failed to load project members:', error)
+        projectMembers.value = []
+      }
+    }
+
     const loadData = async () => {
       if (projects.value.length === 0) {
         await store.dispatch('projects/fetchProjects')
       }
-      if (users.value.length === 0) {
+      if (allUsers.value.length === 0) {
         await store.dispatch('users/fetchUsers')
       }
     }
 
-    onMounted(() => {
-      loadData()
+    // Watch for project selection changes
+    watch(() => form.value.project_id, async (newProjectId) => {
+      if (newProjectId) {
+        await loadProjectMembers(newProjectId)
+      } else {
+        projectMembers.value = []
+      }
+    })
+
+    onMounted(async () => {
+      await loadData()
       
       if (isEditing.value && modalData.value?.id) {
         // Editing existing task - populate form with task data
         // Only copy task fields, not id
         const { id, ...taskData } = modalData.value
         form.value = { ...taskData }
+        // Load members for the task's project
+        if (taskData.project_id) {
+          await loadProjectMembers(taskData.project_id)
+        }
       } else if (modalData.value && modalData.value.projectId) {
         // Creating new task with pre-selected project
         form.value.project_id = modalData.value.projectId
+        await loadProjectMembers(modalData.value.projectId)
       }
     })
 

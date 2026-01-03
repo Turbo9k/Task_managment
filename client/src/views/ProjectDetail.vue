@@ -115,16 +115,58 @@
               <div
                 v-for="task in tasks"
                 :key="task.id"
-                class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors group"
               >
                 <div class="flex-1">
-                  <div class="font-medium text-gray-900 dark:text-white">{{ task.title }}</div>
-                  <div class="text-sm text-gray-500 dark:text-gray-400">{{ task.description }}</div>
+                  <div class="flex items-center space-x-2 mb-1">
+                    <h3 class="font-medium text-gray-900 dark:text-white">{{ task.title }}</h3>
+                    <span
+                      :class="[
+                        'badge text-xs',
+                        `priority-${task.priority || 'medium'}`
+                      ]"
+                    >
+                      {{ task.priority || 'medium' }}
+                    </span>
+                  </div>
+                  <p v-if="task.description" class="text-sm text-gray-500 dark:text-gray-400 mb-2 line-clamp-1">
+                    {{ task.description }}
+                  </p>
+                  <div class="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
+                    <div v-if="task.assignee_name" class="flex items-center">
+                      <img
+                        :src="getAvatarUrl(task.assignee_name, task.assignee_avatar)"
+                        :alt="task.assignee_name"
+                        class="w-4 h-4 rounded-full mr-1"
+                      />
+                      <span>{{ task.assignee_name }}</span>
+                    </div>
+                    <div v-if="task.comment_count > 0" class="flex items-center">
+                      <MessageCircle class="h-3 w-3 mr-1" />
+                      <span>{{ task.comment_count }} note{{ task.comment_count !== 1 ? 's' : '' }}</span>
+                    </div>
+                  </div>
                 </div>
                 <div class="flex items-center space-x-2">
-                  <span :class="getStatusBadgeClass(task.status)">
-                    {{ task.status }}
-                  </span>
+                  <select
+                    :value="task.status"
+                    @change="updateTaskStatus(task.id, $event.target.value)"
+                    @click.stop
+                    :class="getStatusBadgeClass(task.status)"
+                    class="text-xs px-2 py-1 rounded border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  >
+                    <option value="todo">To Do</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="review">Review</option>
+                    <option value="done">Done</option>
+                  </select>
+                  <button
+                    @click.stop="editTask(task)"
+                    class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-all"
+                    title="Edit Task"
+                  >
+                    <Edit class="h-4 w-4" />
+                  </button>
                 </div>
               </div>
             </div>
@@ -156,7 +198,7 @@
               >
                 <div class="flex items-center space-x-3">
                   <img
-                    :src="member.avatar || 'https://ui-avatars.com/api/?name=' + member.name"
+                    :src="getAvatarUrl(member.name, member.avatar)"
                     :alt="member.name"
                     class="w-8 h-8 rounded-full"
                   />
@@ -198,7 +240,9 @@ import {
   UserPlus,
   X,
   FolderX,
-  Trash2
+  Trash2,
+  Edit,
+  MessageCircle
 } from 'lucide-vue-next'
 
 export default {
@@ -210,7 +254,9 @@ export default {
     UserPlus,
     X,
     FolderX,
-    Trash2
+    Trash2,
+    Edit,
+    MessageCircle
   },
   setup() {
     const store = useStore()
@@ -241,8 +287,14 @@ export default {
         if (response.members) {
           members.value = response.members
         }
-        if (response.tasks) {
-          tasks.value = response.tasks
+        
+        // Fetch tasks for this project
+        try {
+          const tasksResponse = await store.dispatch('tasks/fetchTasks', projectId)
+          tasks.value = tasksResponse || []
+        } catch (error) {
+          console.error('Failed to fetch tasks:', error)
+          tasks.value = []
         }
       } catch (error) {
         console.error('Failed to load project:', error)
@@ -280,6 +332,33 @@ export default {
 
     const createTask = () => {
       store.dispatch('modals/showTaskModal', { projectId: project.value.id })
+    }
+
+    const editTask = (task) => {
+      store.dispatch('modals/showTaskModal', task)
+    }
+
+    const updateTaskStatus = async (taskId, newStatus) => {
+      try {
+        await store.dispatch('tasks/updateTask', {
+          taskId,
+          taskData: { status: newStatus }
+        })
+        // Update local tasks array
+        const taskIndex = tasks.value.findIndex(t => t.id === taskId)
+        if (taskIndex !== -1) {
+          tasks.value[taskIndex].status = newStatus
+        }
+      } catch (error) {
+        console.error('Failed to update task status:', error)
+      }
+    }
+
+    // Import avatar utility
+    const getAvatarUrl = (name, avatar) => {
+      if (avatar && avatar.trim() !== '') return avatar
+      if (!name) return 'https://ui-avatars.com/api/?name=User&background=random'
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`
     }
 
     const deleteProject = async () => {
@@ -329,8 +408,94 @@ export default {
       }
     }, { deep: true })
 
-    onMounted(() => {
-      loadProject()
+    // Real-time task updates via Socket.io
+    watch(() => store.getters['socket/isConnected'], (isConnected) => {
+      if (isConnected && project.value) {
+        store.dispatch('socket/joinProject', project.value.id)
+      }
+    })
+
+    // Listen for task updates
+    const unwatchTasks = store.watch(
+      (state) => state.tasks.tasks,
+      (newTasks) => {
+        if (project.value) {
+          // Update tasks for this project
+          const projectTasks = newTasks.filter(t => t.project_id === project.value.id)
+          if (projectTasks.length !== tasks.value.length) {
+            tasks.value = projectTasks
+          }
+        }
+      },
+      { deep: true }
+    )
+
+    onMounted(async () => {
+      await loadProject()
+      
+      // Connect to socket and join project room
+      await store.dispatch('socket/connect')
+      
+      if (project.value) {
+        store.dispatch('socket/joinProject', project.value.id)
+      }
+
+      // Set up socket listeners after connection
+      const setupSocketListeners = () => {
+        const socket = store.state.socket.socket
+        if (!socket) return
+
+        // Remove old listeners if any
+        socket.off('task_created')
+        socket.off('task_updated')
+        socket.off('task_deleted')
+
+        // Add new listeners
+        socket.on('task_created', (task) => {
+          if (task.project_id === parseInt(route.params.id)) {
+            const exists = tasks.value.find(t => t.id === task.id)
+            if (!exists) {
+              tasks.value.push(task)
+            }
+          }
+        })
+
+        socket.on('task_updated', (task) => {
+          if (task.project_id === parseInt(route.params.id)) {
+            const index = tasks.value.findIndex(t => t.id === task.id)
+            if (index !== -1) {
+              tasks.value[index] = { ...tasks.value[index], ...task }
+            } else {
+              tasks.value.push(task)
+            }
+          }
+        })
+
+        socket.on('task_deleted', ({ id }) => {
+          tasks.value = tasks.value.filter(t => t.id !== id)
+        })
+      }
+
+      // Set up listeners immediately if socket exists, or wait for connection
+      if (store.state.socket.socket) {
+        setupSocketListeners()
+      } else {
+        watch(() => store.getters['socket/isConnected'], (isConnected) => {
+          if (isConnected) {
+            setupSocketListeners()
+            if (project.value) {
+              store.dispatch('socket/joinProject', project.value.id)
+            }
+          }
+        }, { immediate: true })
+      }
+    })
+
+    onUnmounted(() => {
+      if (project.value) {
+        store.dispatch('socket/leaveProject', project.value.id)
+      }
+      unwatchTasks()
     })
 
     return {
@@ -344,9 +509,12 @@ export default {
       removeMember,
       editProject,
       createTask,
+      editTask,
+      updateTaskStatus,
       deleteProject,
       getStatusBadgeClass,
-      getRoleBadgeClass
+      getRoleBadgeClass,
+      getAvatarUrl
     }
   }
 }

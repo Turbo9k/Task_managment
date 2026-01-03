@@ -59,10 +59,16 @@ router.get('/project/:projectId', async (req, res) => {
         u.name as assignee_name,
         u.avatar as assignee_avatar,
         creator.name as creator_name,
-        creator.avatar as creator_avatar
+        creator.avatar as creator_avatar,
+        COALESCE(comment_counts.comment_count, 0) as comment_count
       FROM tasks t
       LEFT JOIN users u ON t.assignee_id = u.id
       LEFT JOIN users creator ON t.created_by = creator.id
+      LEFT JOIN (
+        SELECT task_id, COUNT(*)::integer as comment_count
+        FROM task_comments
+        GROUP BY task_id
+      ) comment_counts ON t.id = comment_counts.task_id
       WHERE t.project_id = ?
     `;
     

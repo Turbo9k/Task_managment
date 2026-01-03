@@ -35,14 +35,13 @@ router.post('/register', [
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user (PostgreSQL - use RETURNING to get the ID)
+    // Create user
     const [result] = await pool.execute(
-      'INSERT INTO users (email, password, name, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP) RETURNING id, created_at',
+      'INSERT INTO users (email, password, name, created_at) VALUES (?, ?, ?, NOW())',
       [email, hashedPassword, name]
     );
 
-    const userId = result[0].id;
-    const createdAt = result[0].created_at;
+    const userId = result.insertId;
 
     // Generate JWT
     const token = jwt.sign(
@@ -58,18 +57,12 @@ router.post('/register', [
         id: userId,
         email,
         name,
-        avatar: null,
-        created_at: createdAt
+        avatar: null
       }
     });
   } catch (error) {
     console.error('Registration error:', error);
-    console.error('Error stack:', error.stack);
-    res.status(500).json({ 
-      error: 'Internal server error',
-      message: error.message,
-      ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
-    });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -79,77 +72,32 @@ router.post('/login', [
   body('password').exists()
 ], async (req, res) => {
   try {
-    console.log('Login attempt for:', req.body.email);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
     const { email, password } = req.body;
-    
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
-    }
 
     // Find user
-    let users;
-    try {
-      [users] = await pool.execute(
-        'SELECT id, email, password, name, avatar, is_active, created_at FROM users WHERE email = ?',
-        [email]
-      );
-      console.log('Login query result:', {
-        email: email,
-        usersFound: users.length,
-        userId: users.length > 0 ? users[0].id : null,
-        isActive: users.length > 0 ? users[0].is_active : null,
-        hasPassword: users.length > 0 ? !!users[0].password : false
-      });
-    } catch (dbError) {
-      console.error('Database query error:', dbError);
-      console.error('Error code:', dbError.code);
-      console.error('Error message:', dbError.message);
-      console.error('Error stack:', dbError.stack);
-      
-      // Return detailed error for debugging
-      return res.status(500).json({ 
-        error: 'Database error occurred',
-        message: dbError.message,
-        code: dbError.code,
-        ...(process.env.NODE_ENV === 'development' && { 
-          stack: dbError.stack 
-        })
-      });
-    }
+    const [users] = await pool.execute(
+      'SELECT id, email, password, name, avatar, is_active FROM users WHERE email = ?',
+      [email]
+    );
 
     if (users.length === 0) {
-      console.log('Login failed: User not found for email:', email);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const user = users[0];
 
     if (!user.is_active) {
-      console.log('Login failed: Account deactivated for user:', user.id);
       return res.status(401).json({ error: 'Account is deactivated' });
     }
 
     // Check password
-    if (!user.password) {
-      console.log('Login failed: No password set for user:', user.id);
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
     const isValidPassword = await bcrypt.compare(password, user.password);
-    console.log('Password check result:', {
-      userId: user.id,
-      email: user.email,
-      isValid: isValidPassword,
-      passwordLength: user.password ? user.password.length : 0
-    });
-    
     if (!isValidPassword) {
-      console.log('Login failed: Invalid password for user:', user.id);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -160,7 +108,6 @@ router.post('/login', [
       { expiresIn: '7d' }
     );
 
-    console.log('Login successful for user:', user.id);
     res.json({
       message: 'Login successful',
       token,
@@ -168,40 +115,24 @@ router.post('/login', [
         id: user.id,
         email: user.email,
         name: user.name,
-        avatar: user.avatar,
-        created_at: user.created_at
+        avatar: user.avatar
       }
     });
   } catch (error) {
     console.error('Login error:', error);
-    console.error('Error stack:', error.stack);
-    res.status(500).json({ 
-      error: 'Internal server error',
-      message: error.message,
-      ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
-    });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 // Get current user
 router.get('/me', authenticateToken, async (req, res) => {
   try {
-    const [users] = await pool.execute(
-      'SELECT id, email, name, avatar, created_at FROM users WHERE id = ?',
-      [req.user.id]
-    );
-    
-    if (users.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
     res.json({
       user: {
-        id: users[0].id,
-        email: users[0].email,
-        name: users[0].name,
-        avatar: users[0].avatar,
-        created_at: users[0].created_at
+        id: req.user.id,
+        email: req.user.email,
+        name: req.user.name,
+        avatar: req.user.avatar
       }
     });
   } catch (error) {
@@ -212,106 +143,103 @@ router.get('/me', authenticateToken, async (req, res) => {
 
 // Google OAuth routes
 router.get('/google', (req, res, next) => {
-  console.log('Google OAuth initiated');
-  console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID ? 'Set' : 'Not set');
-  console.log('GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET ? 'Set' : 'Not set');
+  console.log('🔵 Google OAuth initiated');
   passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
 });
 
 router.get('/google/callback', 
   (req, res, next) => {
-    console.log('Google OAuth callback received');
+    console.log('🟢 Google OAuth callback received');
+    console.log('   Query params:', req.query);
+    
+    // Get clean client URL
+    let clientUrl = process.env.CLIENT_URL || 'http://localhost:8080';
+    clientUrl = clientUrl.trim().replace(/\/+$/, ''); // Remove trailing slashes
+    
+    console.log('   CLIENT_URL:', clientUrl);
+    
     passport.authenticate('google', { session: false }, (err, user, info) => {
       if (err) {
-        console.error('Google OAuth error:', err);
-        let clientUrl = process.env.CLIENT_URL || (
-          process.env.NODE_ENV === 'production'
-            ? 'https://task-managment-mauve.vercel.app'
-            : 'http://localhost:8080'
-        );
-        // Remove trailing slash if present
-        clientUrl = clientUrl.replace(/\/$/, '');
-        return res.redirect(`${clientUrl}/login?error=oauth_failed`);
+        console.error('❌ Google OAuth error in callback:', err);
+        console.error('   Error message:', err.message);
+        console.error('   Error code:', err.code);
+        console.error('   Error stack:', err.stack);
+        return res.redirect(`${clientUrl}/login?error=google_auth_failed&msg=${encodeURIComponent(err.message || 'Unknown error')}`);
       }
+      
       if (!user) {
-        console.error('Google OAuth: No user returned');
-        let clientUrl = process.env.CLIENT_URL || (
-          process.env.NODE_ENV === 'production'
-            ? 'https://task-managment-mauve.vercel.app'
-            : 'http://localhost:8080'
-        );
-        // Remove trailing slash if present
-        clientUrl = clientUrl.replace(/\/$/, '');
-        return res.redirect(`${clientUrl}/login?error=oauth_failed`);
+        console.error('❌ Google OAuth: No user returned');
+        console.error('   Info:', JSON.stringify(info, null, 2));
+        console.error('   Error:', info?.message || 'No error message');
+        return res.redirect(`${clientUrl}/login?error=no_user&info=${encodeURIComponent(JSON.stringify(info || {}))}`);
       }
       
-      const token = jwt.sign(
-        { userId: user.id },
-        process.env.JWT_SECRET || 'fallback-secret',
-        { expiresIn: '7d' }
-      );
+      console.log('✅ Google OAuth successful, user:', user.id);
       
-      let clientUrl = process.env.CLIENT_URL || (
-        process.env.NODE_ENV === 'production'
-          ? 'https://task-managment-mauve.vercel.app'
-          : 'http://localhost:8080'
-      );
-      // Remove trailing slash if present
-      clientUrl = clientUrl.replace(/\/$/, '');
-      res.redirect(`${clientUrl}/auth/callback?token=${token}`);
+      try {
+        const token = jwt.sign(
+          { userId: user.id },
+          process.env.JWT_SECRET || 'fallback-secret',
+          { expiresIn: '7d' }
+        );
+        
+        console.log('   Redirecting to callback with token');
+        res.redirect(`${clientUrl}/auth/callback?token=${token}`);
+      } catch (error) {
+        console.error('❌ Google OAuth token generation error:', error);
+        res.redirect(`${clientUrl}/login?error=google_callback_error`);
+      }
     })(req, res, next);
   }
 );
 
 // GitHub OAuth routes
 router.get('/github', (req, res, next) => {
-  console.log('GitHub OAuth initiated');
-  console.log('GITHUB_CLIENT_ID:', process.env.GITHUB_CLIENT_ID ? 'Set' : 'Not set');
-  console.log('GITHUB_CLIENT_SECRET:', process.env.GITHUB_CLIENT_SECRET ? 'Set' : 'Not set');
+  console.log('🔵 GitHub OAuth initiated');
+  console.log('   CLIENT_URL:', process.env.CLIENT_URL);
+  console.log('   GITHUB_CLIENT_ID:', process.env.GITHUB_CLIENT_ID ? 'Set' : 'Missing');
   passport.authenticate('github', { scope: ['user:email'] })(req, res, next);
 });
 
 router.get('/github/callback',
   (req, res, next) => {
-    console.log('GitHub OAuth callback received');
+    console.log('🟢 GitHub OAuth callback received');
+    console.log('   Query params:', req.query);
+    
+    // Get clean client URL
+    let clientUrl = process.env.CLIENT_URL || 'http://localhost:8080';
+    clientUrl = clientUrl.trim().replace(/\/+$/, ''); // Remove trailing slashes
+    
+    console.log('   CLIENT_URL:', clientUrl);
+    
     passport.authenticate('github', { session: false }, (err, user, info) => {
       if (err) {
-        console.error('GitHub OAuth error:', err);
-        let clientUrl = process.env.CLIENT_URL || (
-          process.env.NODE_ENV === 'production'
-            ? 'https://task-managment-mauve.vercel.app'
-            : 'http://localhost:8080'
-        );
-        // Remove trailing slash if present
-        clientUrl = clientUrl.replace(/\/$/, '');
-        return res.redirect(`${clientUrl}/login?error=oauth_failed`);
+        console.error('❌ GitHub OAuth error:', err);
+        console.error('   Error message:', err.message);
+        return res.redirect(`${clientUrl}/login?error=github_auth_failed`);
       }
+      
       if (!user) {
-        console.error('GitHub OAuth: No user returned');
-        let clientUrl = process.env.CLIENT_URL || (
-          process.env.NODE_ENV === 'production'
-            ? 'https://task-managment-mauve.vercel.app'
-            : 'http://localhost:8080'
-        );
-        // Remove trailing slash if present
-        clientUrl = clientUrl.replace(/\/$/, '');
-        return res.redirect(`${clientUrl}/login?error=oauth_failed`);
+        console.error('❌ GitHub OAuth: No user returned');
+        console.error('   Info:', info);
+        return res.redirect(`${clientUrl}/login?error=no_user`);
       }
       
-      const token = jwt.sign(
-        { userId: user.id },
-        process.env.JWT_SECRET || 'fallback-secret',
-        { expiresIn: '7d' }
-      );
+      console.log('✅ GitHub OAuth successful, user:', user.id);
       
-      let clientUrl = process.env.CLIENT_URL || (
-        process.env.NODE_ENV === 'production'
-          ? 'https://task-managment-mauve.vercel.app'
-          : 'http://localhost:8080'
-      );
-      // Remove trailing slash if present
-      clientUrl = clientUrl.replace(/\/$/, '');
-      res.redirect(`${clientUrl}/auth/callback?token=${token}`);
+      try {
+        const token = jwt.sign(
+          { userId: user.id },
+          process.env.JWT_SECRET || 'fallback-secret',
+          { expiresIn: '7d' }
+        );
+        
+        console.log('   Redirecting to callback with token');
+        res.redirect(`${clientUrl}/auth/callback?token=${token}`);
+      } catch (error) {
+        console.error('❌ GitHub OAuth token generation error:', error);
+        res.redirect(`${clientUrl}/login?error=github_callback_error`);
+      }
     })(req, res, next);
   }
 );

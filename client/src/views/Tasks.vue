@@ -117,7 +117,7 @@
             <div class="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
               <div v-if="task.assignee_name" class="flex items-center">
                 <img
-                  :src="task.assignee_avatar || defaultAvatar"
+                  :src="getAvatarUrl(task.assignee_name, task.assignee_avatar)"
                   :alt="task.assignee_name"
                   class="w-5 h-5 rounded-full mr-2"
                 />
@@ -216,7 +216,11 @@ export default {
     const filteredTasks = computed(() => store.getters['tasks/filteredTasks'])
     const isLoading = computed(() => store.getters['tasks/isLoading'])
 
-    const defaultAvatar = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
+    const getAvatarUrl = (name, avatar) => {
+      if (avatar && avatar.trim() !== '') return avatar
+      if (!name) return 'https://ui-avatars.com/api/?name=User&background=random'
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`
+    }
 
     const createTask = () => {
       store.dispatch('modals/showTaskModal')
@@ -301,7 +305,7 @@ export default {
       tasks,
       filteredTasks,
       isLoading,
-      defaultAvatar,
+      getAvatarUrl,
       createTask,
       editTask,
       viewTask,
