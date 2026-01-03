@@ -131,7 +131,7 @@ router.get('/:id', requireProjectMember, async (req, res) => {
     `, [id]);
 
     // Get recent activity
-    // Use PostgreSQL-compatible string concatenation
+    // Use PostgreSQL-compatible string concatenation (|| instead of CONCAT)
     const [activity] = await pool.execute(`
       SELECT 
         'task_created' as type,
@@ -141,7 +141,7 @@ router.get('/:id', requireProjectMember, async (req, res) => {
         t.created_at as timestamp
       FROM tasks t
       LEFT JOIN users u ON t.created_by = u.id
-      WHERE t.project_id = $1
+      WHERE t.project_id = ?
       
       UNION ALL
       
@@ -153,11 +153,11 @@ router.get('/:id', requireProjectMember, async (req, res) => {
         t.updated_at as timestamp
       FROM tasks t
       LEFT JOIN users u ON t.assignee_id = u.id
-      WHERE t.project_id = $1 AND t.updated_at > t.created_at
+      WHERE t.project_id = ? AND t.updated_at > t.created_at
       
       ORDER BY timestamp DESC
       LIMIT 20
-    `, [id]);
+    `, [id, id]);
 
     res.json({
       ...project,
