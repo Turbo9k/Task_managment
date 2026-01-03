@@ -45,9 +45,14 @@ router.put('/profile', [
   }).withMessage('Avatar must be a valid URL, blob URL, or data URL')
 ], async (req, res) => {
   try {
+    console.log('[Profile Update] Request body:', { 
+      name: req.body.name, 
+      avatar: req.body.avatar ? req.body.avatar.substring(0, 50) + '...' : null 
+    });
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.error('Profile update validation errors:', errors.array());
+      console.error('[Profile Update] Validation errors:', errors.array());
       return res.status(400).json({ errors: errors.array() });
     }
 
@@ -59,9 +64,18 @@ router.put('/profile', [
       updateFields.push('name = ?');
       values.push(name.trim());
     }
-    if (avatar && avatar.trim() !== '') {
-      updateFields.push('avatar = ?');
-      values.push(avatar.trim());
+    if (avatar && avatar.trim() !== '' && avatar !== 'null' && avatar !== 'undefined') {
+      // Validate avatar is a valid data URL or URL
+      const avatarTrimmed = avatar.trim();
+      if (avatarTrimmed.startsWith('data:image/') || 
+          avatarTrimmed.startsWith('http://') || 
+          avatarTrimmed.startsWith('https://') ||
+          avatarTrimmed.startsWith('blob:')) {
+        updateFields.push('avatar = ?');
+        values.push(avatarTrimmed);
+      } else {
+        console.warn('[Profile Update] Invalid avatar format, skipping:', avatarTrimmed.substring(0, 50));
+      }
     }
 
     if (updateFields.length === 0) {
