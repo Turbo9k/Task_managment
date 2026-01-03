@@ -13,6 +13,7 @@ const authRoutes = require('./routes/auth');
 const taskRoutes = require('./routes/tasks');
 const projectRoutes = require('./routes/projects');
 const userRoutes = require('./routes/users');
+const analyticsRoutes = require('./routes/analytics');
 const { authenticateToken } = require('./middleware/auth');
 const { initializeSocket } = require('./socket/socketHandler');
 
@@ -60,6 +61,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tasks', authenticateToken, taskRoutes);
 app.use('/api/projects', authenticateToken, projectRoutes);
 app.use('/api/users', authenticateToken, userRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
