@@ -165,10 +165,11 @@
 
     <!-- Chat Modal -->
     <ChatModal
+      v-if="selectedTask"
       :is-open="showChatModal"
       :type="'task'"
-      :item-id="selectedTask?.id"
-      :item-name="selectedTask?.title"
+      :item-id="selectedTask.id"
+      :item-name="selectedTask.title"
       @close="closeChatModal"
     />
   </div>

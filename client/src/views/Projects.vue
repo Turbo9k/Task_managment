@@ -135,10 +135,11 @@
 
     <!-- Chat Modal -->
     <ChatModal
+      v-if="selectedProject"
       :is-open="showChatModal"
       :type="'project'"
-      :item-id="selectedProject?.id"
-      :item-name="selectedProject?.name"
+      :item-id="selectedProject.id"
+      :item-name="selectedProject.name"
       @close="closeChatModal"
     />
   </div>
