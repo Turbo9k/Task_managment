@@ -169,10 +169,16 @@ const actions = {
       })
 
       socket.on('user_avatar_updated', ({ userId, avatar, name }) => {
+        console.log('[Socket] User avatar updated:', { userId, avatar: avatar?.substring(0, 50) + '...', name })
         // Update user avatar in projects store
         commit('projects/UPDATE_MEMBER_AVATAR', { userId, avatar }, { root: true })
         // Update user avatar in users store if it exists
         commit('users/UPDATE_USER_AVATAR', { userId, avatar }, { root: true })
+        // Also update auth user if it's the current user
+        const currentUser = rootGetters['auth/user']
+        if (currentUser && currentUser.id === userId) {
+          commit('auth/SET_USER', { ...currentUser, avatar }, { root: true })
+        }
       })
 
     } catch (error) {
