@@ -291,9 +291,11 @@ export default {
         // Fetch tasks for this project
         try {
           const tasksResponse = await store.dispatch('tasks/fetchTasks', projectId)
-          tasks.value = tasksResponse || []
+          console.log('[ProjectDetail] Fetched tasks:', tasksResponse)
+          tasks.value = Array.isArray(tasksResponse) ? tasksResponse : []
+          console.log('[ProjectDetail] Tasks value set to:', tasks.value.length, 'tasks')
         } catch (error) {
-          console.error('Failed to fetch tasks:', error)
+          console.error('[ProjectDetail] Failed to fetch tasks:', error)
           tasks.value = []
         }
       } catch (error) {

@@ -130,9 +130,11 @@ const actions = {
     try {
       const response = await api.get(`/tasks/project/${projectId}`)
       commit('SET_TASKS', response.data)
+      return response.data // Return tasks so component can use them directly
     } catch (error) {
       const message = error.response?.data?.error || 'Failed to fetch tasks'
       commit('SET_ERROR', message)
+      console.error('Fetch tasks error:', error)
       throw error
     } finally {
       commit('SET_LOADING', false)
