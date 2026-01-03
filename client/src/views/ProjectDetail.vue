@@ -460,15 +460,10 @@ export default {
     watch(() => store.getters['projects/currentProject'], (newProject) => {
       if (newProject && newProject.id === parseInt(route.params.id)) {
         if (newProject.members) {
-          members.value = newProject.members
+          // Create a new array to avoid mutation issues
+          members.value = [...newProject.members]
         }
       }
-    }, { deep: true })
-
-    // Watch for avatar updates in members
-    watch(() => members.value, (newMembers) => {
-      // Force reactivity update
-      members.value = [...newMembers]
     }, { deep: true })
 
     // Real-time task updates via Socket.io

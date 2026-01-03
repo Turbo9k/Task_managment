@@ -40,12 +40,13 @@ const mutations = {
     }
   },
   UPDATE_USER_AVATAR(state, { userId, avatar }) {
-    const user = state.users.find(u => u.id === userId)
-    if (user) {
-      user.avatar = avatar
-    }
+    // Update user in users array
+    state.users = state.users.map(user => 
+      user.id === userId ? { ...user, avatar } : user
+    )
+    // Update current user if it matches
     if (state.currentUser && state.currentUser.id === userId) {
-      state.currentUser.avatar = avatar
+      state.currentUser = { ...state.currentUser, avatar }
     }
   },
   REMOVE_USER(state, userId) {

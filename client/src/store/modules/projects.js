@@ -57,24 +57,29 @@ const mutations = {
   UPDATE_MEMBER_AVATAR(state, { userId, avatar }) {
     // Update avatar in current project members
     if (state.currentProject && state.currentProject.members) {
-      const member = state.currentProject.members.find(m => m.id === userId)
-      if (member) {
-        member.avatar = avatar
-        // Force reactivity
-        state.currentProject.members = [...state.currentProject.members]
+      const memberIndex = state.currentProject.members.findIndex(m => m.id === userId)
+      if (memberIndex !== -1) {
+        // Create new object to avoid direct mutation
+        state.currentProject.members = state.currentProject.members.map((m, idx) => 
+          idx === memberIndex ? { ...m, avatar } : m
+        )
       }
     }
     // Update avatar in projects list if user is a member
-    state.projects.forEach(project => {
+    state.projects = state.projects.map(project => {
       if (project.members) {
-        const member = project.members.find(m => m.id === userId)
-        if (member) {
-          member.avatar = avatar
+        const memberIndex = project.members.findIndex(m => m.id === userId)
+        if (memberIndex !== -1) {
+          return {
+            ...project,
+            members: project.members.map((m, idx) => 
+              idx === memberIndex ? { ...m, avatar } : m
+            )
+          }
         }
       }
+      return project
     })
-    // Force reactivity
-    state.projects = [...state.projects]
   },
   CLEAR_PROJECTS(state) {
     state.projects = []
