@@ -201,24 +201,40 @@ export default {
       isUploading.value = true
 
       try {
-        // Upload avatar
-        await new Promise(resolve => setTimeout(resolve, 2000))
+        // Convert file to base64 data URL so it can be shared between users
+        const reader = new FileReader()
         
-        // Create a preview URL
-        const avatarUrl = URL.createObjectURL(file)
+        reader.onload = async (e) => {
+          try {
+            const dataUrl = e.target.result // This is a base64 data URL like "data:image/png;base64,..."
+            
+            // Update the form with the new avatar
+            form.value.avatar = dataUrl
+            
+            // Update the user profile with the base64 data URL
+            await store.dispatch('auth/updateProfile', { avatar: dataUrl })
+            
+            // Clear the file input
+            event.target.value = ''
+          } catch (error) {
+            console.error('Avatar upload error:', error)
+            alert('Failed to upload avatar. Please try again.')
+          } finally {
+            isUploading.value = false
+          }
+        }
         
-        // Update the form with the new avatar
-        form.value.avatar = avatarUrl
+        reader.onerror = () => {
+          console.error('File reading error')
+          alert('Failed to read image file. Please try again.')
+          isUploading.value = false
+        }
         
-        // Update the user profile
-        await store.dispatch('auth/updateProfile', { avatar: avatarUrl })
-        
-        // Clear the file input
-        event.target.value = ''
+        // Read file as data URL (base64)
+        reader.readAsDataURL(file)
       } catch (error) {
         console.error('Avatar upload error:', error)
         alert('Failed to upload avatar. Please try again.')
-      } finally {
         isUploading.value = false
       }
     }
