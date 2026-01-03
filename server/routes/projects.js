@@ -193,11 +193,19 @@ router.post('/', [
 
     const projectId = result[0].id;
 
-    // Add creator as admin
-    await pool.execute(`
-      INSERT INTO project_users (project_id, user_id, role, joined_at)
-      VALUES (?, ?, 'admin', CURRENT_TIMESTAMP)
-    `, [projectId, req.user.id]);
+    // Add creator as admin (with error handling in case it already exists)
+    try {
+      await pool.execute(`
+        INSERT INTO project_users (project_id, user_id, role, joined_at)
+        VALUES (?, ?, 'admin', CURRENT_TIMESTAMP)
+      `, [projectId, req.user.id]);
+    } catch (insertError) {
+      // If already exists (shouldn't happen, but handle gracefully)
+      if (insertError.code !== '23505' && !insertError.message.includes('unique')) {
+        console.error('Error adding creator to project:', insertError);
+        // Continue anyway - the project was created
+      }
+    }
 
     // Get created project
     const [projects] = await pool.execute(`
@@ -351,7 +359,7 @@ router.delete('/:id/members/:userId', requireProjectMember, requireProjectRole([
 
     // Don't allow removing the last admin
     const [admins] = await pool.execute(
-      'SELECT COUNT(*) as admin_count FROM project_users WHERE project_id = ? AND role = "admin"',
+      "SELECT COUNT(*) as admin_count FROM project_users WHERE project_id = ? AND role = 'admin'",
       [id]
     );
 

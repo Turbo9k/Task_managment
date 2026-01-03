@@ -23,6 +23,35 @@ const requireProjectMember = async (req, res, next) => {
     );
 
     if (members.length === 0) {
+      // Check if user is the project creator - if so, auto-add them
+      const [projects] = await pool.execute(
+        'SELECT created_by FROM projects WHERE id = ?',
+        [projectId]
+      );
+      
+      if (projects.length > 0 && projects[0].created_by === req.user.id) {
+        // User is the creator but not in project_users - add them
+        try {
+          await pool.execute(
+            'INSERT INTO project_users (project_id, user_id, role, joined_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)',
+            [projectId, req.user.id, 'admin']
+          );
+          console.log(`Auto-added project creator ${req.user.id} to project ${projectId}`);
+          req.userProjectRole = 'admin';
+          return next();
+        } catch (insertError) {
+          // If insert fails (e.g., duplicate), try to get existing membership
+          const [retryMembers] = await pool.execute(
+            'SELECT role FROM project_users WHERE project_id = ? AND user_id = ?',
+            [projectId, req.user.id]
+          );
+          if (retryMembers.length > 0) {
+            req.userProjectRole = retryMembers[0].role;
+            return next();
+          }
+        }
+      }
+      
       // Return 403 (Forbidden) instead of 404 to prevent information disclosure
       console.log(`Access denied: User ${req.user.id} attempted to access project ${projectId}`);
       return res.status(403).json({ 
