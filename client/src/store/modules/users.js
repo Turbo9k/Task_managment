@@ -39,6 +39,15 @@ const mutations = {
       state.users.splice(index, 1, user)
     }
   },
+  UPDATE_USER_AVATAR(state, { userId, avatar }) {
+    const user = state.users.find(u => u.id === userId)
+    if (user) {
+      user.avatar = avatar
+    }
+    if (state.currentUser && state.currentUser.id === userId) {
+      state.currentUser.avatar = avatar
+    }
+  },
   REMOVE_USER(state, userId) {
     state.users = state.users.filter(u => u.id !== userId)
   },

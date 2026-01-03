@@ -54,6 +54,24 @@ const mutations = {
       state.currentProject.members = state.currentProject.members.filter(m => m.id !== userId)
     }
   },
+  UPDATE_MEMBER_AVATAR(state, { userId, avatar }) {
+    // Update avatar in current project members
+    if (state.currentProject && state.currentProject.members) {
+      const member = state.currentProject.members.find(m => m.id === userId)
+      if (member) {
+        member.avatar = avatar
+      }
+    }
+    // Update avatar in projects list if user is a member
+    state.projects.forEach(project => {
+      if (project.members) {
+        const member = project.members.find(m => m.id === userId)
+        if (member) {
+          member.avatar = avatar
+        }
+      }
+    })
+  },
   CLEAR_PROJECTS(state) {
     state.projects = []
     state.currentProject = null

@@ -82,7 +82,26 @@ router.put('/profile', [
       [req.user.id]
     );
 
-    res.json(users[0]);
+    const updatedUser = users[0];
+
+    // Emit real-time update to notify other users of avatar change
+    if (req.io && avatar) {
+      // Broadcast to all projects this user is in
+      const [userProjects] = await pool.execute(
+        'SELECT project_id FROM project_users WHERE user_id = ?',
+        [req.user.id]
+      );
+      
+      userProjects.forEach(({ project_id }) => {
+        req.io.to(`project_${project_id}`).emit('user_avatar_updated', {
+          userId: req.user.id,
+          avatar: updatedUser.avatar,
+          name: updatedUser.name
+        });
+      });
+    }
+
+    res.json(updatedUser);
   } catch (error) {
     console.error('Update profile error:', error);
     res.status(500).json({ error: 'Internal server error' });

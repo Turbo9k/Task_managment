@@ -168,6 +168,13 @@ const actions = {
         toast.info('Member removed from project')
       })
 
+      socket.on('user_avatar_updated', ({ userId, avatar, name }) => {
+        // Update user avatar in projects store
+        commit('projects/UPDATE_MEMBER_AVATAR', { userId, avatar }, { root: true })
+        // Update user avatar in users store if it exists
+        commit('users/UPDATE_USER_AVATAR', { userId, avatar }, { root: true })
+      })
+
     } catch (error) {
       console.error('Socket connection failed:', error)
       toast.error('Failed to connect to real-time updates')
