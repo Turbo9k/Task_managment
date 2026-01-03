@@ -30,11 +30,24 @@ router.get('/', async (req, res) => {
 // Update user profile
 router.put('/profile', [
   body('name').optional().trim().isLength({ min: 2 }),
-  body('avatar').optional().isURL()
+  body('avatar').optional().custom((value) => {
+    // Accept URLs (http/https) or blob URLs
+    if (!value) return true;
+    if (typeof value !== 'string') return false;
+    // Check if it's a valid URL or blob URL
+    try {
+      const url = new URL(value);
+      return url.protocol === 'http:' || url.protocol === 'https:' || url.protocol === 'blob:';
+    } catch {
+      // If URL parsing fails, check if it's a base64 data URL
+      return value.startsWith('data:image/');
+    }
+  }).withMessage('Avatar must be a valid URL, blob URL, or data URL')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.error('Profile update validation errors:', errors.array());
       return res.status(400).json({ errors: errors.array() });
     }
 
@@ -42,13 +55,13 @@ router.put('/profile', [
     const updateFields = [];
     const values = [];
 
-    if (name) {
+    if (name && name.trim().length >= 2) {
       updateFields.push('name = ?');
-      values.push(name);
+      values.push(name.trim());
     }
-    if (avatar) {
+    if (avatar && avatar.trim() !== '') {
       updateFields.push('avatar = ?');
-      values.push(avatar);
+      values.push(avatar.trim());
     }
 
     if (updateFields.length === 0) {
