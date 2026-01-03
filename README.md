@@ -4,6 +4,19 @@
 # 3️⃣ **Task Management App** README  
 📍 Repo: `Task_managment`
 
+## Screenshots
+
+### Authentication & Access
+![Login](./screenshots/tasklogin.png)
+
+### Task & Project Management
+![Task Board](./screenshots/taskboard.PNG)
+![Progress Board](./screenshots/progressboard.PNG)
+
+### Admin & Role Management
+![Admin Panel](./screenshots/admin.PNG)
+
+
 ```markdown
 # Task Management App
 
