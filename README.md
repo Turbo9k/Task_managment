@@ -9,6 +9,18 @@
 
 A real-time collaborative task management platform designed for team-based workflows.
 
+## 🔐 Demo Login Credentials
+
+Use the following accounts to explore the application without signing up:
+
+| Role  | Email              | Password     |
+|------|--------------------|--------------|
+| Admin | admin@example.com | password123 |
+| User  | john@demo.com     | password123 |
+| User  | jane@demo.com     | password123 |
+| User  | mike@demo.com     | password123 |
+> These demo accounts showcase role-based access control and real-time collaboration features.
+
 ## 🚀 Live Demo
 https://task-managment-mauve.vercel.app
 
