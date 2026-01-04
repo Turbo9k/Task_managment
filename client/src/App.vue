@@ -15,6 +15,9 @@
         item-name="Global Chat"
       />
     </div>
+    
+    <!-- Vercel Speed Insights -->
+    <SpeedInsights />
   </div>
 </template>
 
@@ -23,12 +26,14 @@ import { computed, onMounted } from 'vue'
 import { useStore } from 'vuex'
 import ChatWidget from './components/Chat/ChatWidget.vue'
 import AppLayout from './components/Layout/AppLayout.vue'
+import SpeedInsights from './components/SpeedInsights.vue'
 
 export default {
   name: 'App',
   components: {
     ChatWidget,
-    AppLayout
+    AppLayout,
+    SpeedInsights
   },
   setup() {
     const store = useStore()
